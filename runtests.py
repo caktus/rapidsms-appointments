@@ -13,6 +13,7 @@ if not settings.configured:
             }
         },
         INSTALLED_APPS=(
+            'rapidsms',
             'appointments',
         ),
         SITE_ID=1,
