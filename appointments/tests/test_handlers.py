@@ -11,9 +11,10 @@ class NewHandlerTestCase(TestCase):
         replies = NewHandler.test('APPT NEW')
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertTrue('APPT NEW <NAME/ID> <DATE>' in reply)
+        self.assertTrue('APPT NEW <KEY> <NAME/ID> <DATE>' in reply)
 
     def test_match(self):
         "Send a successful match to create user timeline subscription."
         replies = NewHandler.test('APPT NEW foo')
         self.assertEqual(len(replies), 1)
+        reply = replies[0]

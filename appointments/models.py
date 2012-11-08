@@ -21,6 +21,10 @@ class Timeline(models.Model):
     def __unicode__(self):
         return self.name
 
+    @property
+    def keywords(self):
+        return map(lambda k: k.strip().lower(), self.slug.split('|'))
+
 
 class TimelineSubscription(models.Model):
     "Subscribing a user to a timeline of reminders."
