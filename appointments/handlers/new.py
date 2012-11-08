@@ -23,10 +23,10 @@ class NewHandler(AppointmentHandler):
         "Tokenize message text."
         result = {}
         tokens = text.strip().split()
-        result['keyword'] = tokens.pop()
+        result['keyword'] = tokens.pop(0)
         if tokens:
             # Next token is the name/id
-            result['name'] = tokens.pop()
+            result['name'] = tokens.pop(0)
             if tokens:
                 # Remaining tokens should be a date string
                 result['date'] = ' '.join(tokens)
@@ -54,7 +54,7 @@ class NewHandler(AppointmentHandler):
             )
             msg_data = {
                 'user': ' %s' % self.msg.contact.name if self.msg.contact else '',
-                'date': result['start'].date.isoformat(),
+                'date': result['start'].isoformat(),
                 'name': name,
                 'timeline': timeline.name,
             }

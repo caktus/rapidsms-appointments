@@ -33,7 +33,7 @@ class TimelineSubscription(models.Model):
     connection = models.ForeignKey('rapidsms.Connection', related_name='timelines')
     pin = models.CharField(max_length=160, help_text=_('Name, phrase, or digits used when joining the timeline.'))
     start = models.DateTimeField(_('start date'), default=now)
-    end = models.DateTimeField(_('end date'), default=None)
+    end = models.DateTimeField(_('end date'), default=None, null=True)
 
     def __unicode__(self):
         return '%s - %s' % (self.contact, self.timeline) 

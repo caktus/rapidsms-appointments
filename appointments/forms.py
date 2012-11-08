@@ -19,7 +19,7 @@ class NewMessageForm(forms.Form):
             # Query DB for valid keywords
             for timeline in Timeline.objects.filter(slug__icontains=keyword):
                 if keyword.strip().lower() in timeline.keywords:
-                    match = timline
+                    match = timeline
                     break
         if match is None:
             # Invalid keyword
