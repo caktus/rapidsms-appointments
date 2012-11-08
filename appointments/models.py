@@ -27,6 +27,7 @@ class TimelineSubscription(models.Model):
 
     timeline = models.ForeignKey(Timeline, related_name='subscribers')
     contact = models.ForeignKey('rapidsms.Contact', related_name='timelines')
+    pin = models.CharField(max_length=160, help_text=_('Name, phrase, or digits used when joining the timeline.'))
     start = models.DateTimeField(_('start date'), default=now)
     end = models.DateTimeField(_('end date'), default=None)
 
@@ -53,7 +54,7 @@ class Appointment(models.Model):
     date = models.DateField(_('appointment date'))
     confirmed = models.DateTimeField(blank=True, null=True, default=None)
     reschedule = models.ForeignKey('self', blank=True, null=True, related_name='appointments')
-    missed = models.BooleanField(default=False, blank=True)
+    missed = models.BooleanField(default=True, blank=True)
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):
