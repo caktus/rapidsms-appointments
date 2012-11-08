@@ -26,7 +26,7 @@ class TimelineSubscription(models.Model):
     "Subscribing a user to a timeline of reminders."
 
     timeline = models.ForeignKey(Timeline, related_name='subscribers')
-    contact = models.ForeignKey('rapidsms.Contact', related_name='timelines')
+    connection = models.ForeignKey('rapidsms.Connection', related_name='timelines')
     pin = models.CharField(max_length=160, help_text=_('Name, phrase, or digits used when joining the timeline.'))
     start = models.DateTimeField(_('start date'), default=now)
     end = models.DateTimeField(_('end date'), default=None)
@@ -50,7 +50,7 @@ class Appointment(models.Model):
     "Instance of a subscribed user hitting a milestone."
 
     milestone = models.ForeignKey(Milestone, related_name='appointments')
-    contact = models.ForeignKey('rapidsms.Contact', related_name='appointments')
+    connection = models.ForeignKey('rapidsms.Connection', related_name='appointments')
     date = models.DateField(_('appointment date'))
     confirmed = models.DateTimeField(blank=True, null=True, default=None)
     reschedule = models.ForeignKey('self', blank=True, null=True, related_name='appointments')
