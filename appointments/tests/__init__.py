@@ -1,1 +1,1 @@
-from .test_handlers import NewHandlerTestCase
+from .test_handlers import NewHandlerTestCase, ConfirmHandlerTestCase

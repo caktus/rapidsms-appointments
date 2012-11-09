@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .base import AppointmentDataTestCase
+from ..handlers.confirm import ConfirmHandler
 from ..handlers.new import NewHandler
 
 
@@ -64,3 +65,17 @@ class NewHandlerTestCase(AppointmentDataTestCase):
         reply = replies[0]
         self.assertTrue(reply.startswith('Sorry'))
         del NewHandler._mock_backend
+
+
+class ConfirmHandlerTestCase(AppointmentDataTestCase):
+    "Keyword handler for confirming appointments."
+
+    def setUp(self):
+        self.timeline = self.create_timeline(name='Test', slug='foo')
+
+    def test_help(self):
+        "Prefix and keyword should return the help."
+        replies = ConfirmHandler.test('APPT CONFIRM')
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('APPT CONFIRM <NAME/ID>' in reply)
