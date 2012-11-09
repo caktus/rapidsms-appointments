@@ -13,7 +13,6 @@
 
 import sys, os
 import appointments
-import caktus_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -83,7 +82,7 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-#pygments_style = 'sphinx'
+pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -93,21 +92,15 @@ exclude_patterns = ['_build']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'caktus'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {
-    'tagline': "RapidSMS application for appointment scheduling and reminders.",
-    'links': {
-#        'pypi': 'http://pypi.python.org/pypi/rapidsms-appointments',
-        'github': 'https://github.com/caktus/rapidsms-appointments',
-    }
-}
+#html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [caktus_theme.get_theme_dir()]
+#html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -139,7 +132,7 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = caktus_theme.default_sidebars()
+#html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

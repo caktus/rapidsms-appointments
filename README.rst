@@ -24,13 +24,23 @@ Documentation on using rapidsms-appointments is available on
 Running the Tests
 ------------------------------------
 
-You can run the tests with via::
+With all of the dependancies installed, you can quickly run the tests with via::
 
     python setup.py test
 
 or::
 
     python runtests.py
+
+To test rapidsms-appointment in multiple supported environments you can make use
+of the `tox <http://tox.readthedocs.org/>`_ configuration.::
+
+    # You must have tox installed
+    pip install tox
+    # Build default set of environments
+    tox
+    # Build a single environment
+    tox -e py26-1.4.X
 
 
 License
