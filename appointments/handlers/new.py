@@ -12,13 +12,8 @@ class NewHandler(AppointmentHandler):
     "Subscribes a user to a timeline."
 
     keyword = 'new'
-
-    def help(self):
-        "Return help mesage."
-        keyword = self.keyword.split('|')[0].upper()
-        help_text =_('To add a user a timeline send: %(prefix)s %(keyword)s <KEY> <NAME/ID> <DATE>. '
-            'The date is optional.') % {'prefix': self.prefix, 'keyword': keyword}
-        self.respond(help_text)
+    help_text = _('To add a user a timeline send: %(prefix)s %(keyword)s <KEY> <NAME/ID> <DATE>. '
+        'The date is optional.')
 
     def parse_message(self, text):
         "Tokenize message text."

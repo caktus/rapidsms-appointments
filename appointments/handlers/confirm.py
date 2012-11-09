@@ -10,12 +10,7 @@ class ConfirmHandler(AppointmentHandler):
     "Confirm an appointment notificiation."
 
     keyword = 'confirm'
-
-    def help(self):
-        "Return help mesage."
-        keyword = self.keyword.split('|')[0].upper()
-        help_text = _('To confirm an upcoming appointment send: %(prefix)s %(keyword)s <NAME/ID>')
-        self.respond(help_text % {'prefix': self.prefix, 'keyword': keyword})     
+    help_text = _('To confirm an upcoming appointment send: %(prefix)s %(keyword)s <NAME/ID>')    
 
     def handle(self, text):
         "Match the user to an uncomfirmed notification."
