@@ -1,7 +1,11 @@
 RapidSMS Appointments
 ========================
 
-Welcome to the documentation for rapidsms-appointments!
+rapidsms-appointments is a reusable RapidSMS application for sending appointment
+reminders. Users can be subscribed to a timeline of milestones for future appointments. Reminders
+are send to the patient or staff to remind them of the appointment. Appointments
+can be confirmed or rescheduled by patient or staff. It also tracks the history of confirmed
+notifications and missed/made appointments.
 
 
 Dependencies
