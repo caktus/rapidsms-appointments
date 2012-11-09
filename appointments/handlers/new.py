@@ -15,8 +15,9 @@ class NewHandler(AppointmentHandler):
 
     def help(self):
         "Return help mesage."
-        help_text =_('To add a user a timeline send: %(prefix)s NEW <KEY> <NAME/ID> <DATE>. '
-            'The date is optional.') % {'prefix': self.prefix}
+        keyword = self.keyword.split('|')[0].upper()
+        help_text =_('To add a user a timeline send: %(prefix)s %(keyword)s <KEY> <NAME/ID> <DATE>. '
+            'The date is optional.') % {'prefix': self.prefix, 'keyword': keyword}
         self.respond(help_text)
 
     def parse_message(self, text):
@@ -33,6 +34,7 @@ class NewHandler(AppointmentHandler):
         return result       
 
     def handle(self, text):
+        "Register user with a given timeline based on the keyword match."
         parsed = self.parse_message(text)
         form = NewMessageForm(data=parsed)
         if form.is_valid():
