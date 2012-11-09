@@ -54,7 +54,7 @@ for a new born baby.
 
 First a site admin will create a timeline with a keyword 'birth' and a name 'New Birth'.
 Associated with that timeline they will create milestones at 1 week (7 days), 2 weeks (14 days),
-1 month (30 days), 3 months (90 days), 6 months (180 days) and 1 year (365 days).
+1 month (30 days), 3 months (90 days), 6 months (180 days), and 1 year (365 days).
 
 To subscribe to these notifications a user will send in an SMS with the message::
 
@@ -82,5 +82,5 @@ Appointments can also be reschuduled via::
 
     APPT MOVE Joe <Date>
 
-where ``<DATE>`` denotes the new appointement date. A new reminder will be sent for
-the new appointment date.
+where ``<DATE>`` denotes the new appointment date. A new reminder will be sent for
+the new appointment.
