@@ -36,7 +36,7 @@ class TimelineSubscription(models.Model):
     end = models.DateTimeField(_('end date'), default=None, null=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.contact, self.timeline) 
+        return '%s - %s' % (self.connection, self.timeline) 
 
 
 class Milestone(models.Model):
@@ -62,7 +62,7 @@ class Appointment(models.Model):
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):
-        return 'Appointment for %s on %s' % (self.contact, self.date.isoformat()) 
+        return 'Appointment for %s on %s' % (self.connection, self.date.isoformat()) 
 
 
 class Notification(models.Model):
@@ -87,4 +87,4 @@ class Notification(models.Model):
     message = models.CharField(max_length=160)
 
     def __unicode__(self):
-        return 'Notification for %s on %s' % (self.contact, self.sent.isoformat()) 
+        return 'Notification for %s on %s' % (self.connection, self.sent.isoformat()) 
