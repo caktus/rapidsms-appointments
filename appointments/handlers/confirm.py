@@ -22,7 +22,7 @@ class ConfirmHandler(AppointmentHandler):
         form = ConfirmForm(data=parsed, connection=self.msg.connection)
         if form.is_valid():
             form.save()
-            self.respond(_('Thank you. Your appointment has been confirmed.'))
+            self.respond(_('Thank you! Your appointment has been confirmed.'))
         else:
             error = form.error()
             if error is None:

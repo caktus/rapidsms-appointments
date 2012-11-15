@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from .base import AppointmentDataTestCase
+from .base import AppointmentDataTestCase, Notification, Appointment, now
 from ..handlers.confirm import ConfirmHandler
 from ..handlers.new import NewHandler
 
@@ -72,6 +72,13 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
 
     def setUp(self):
         self.timeline = self.create_timeline(name='Test', slug='foo')
+        self.connection = self.create_connection()
+        self.subscription = self.create_timeline_subscription(
+            timeline=self.timeline, connection=self.connection, pin='bar')
+        ConfirmHandler._mock_backend = self.connection.backend
+        self.milestone = self.create_milestone(timeline=self.timeline)
+        self.appointment = self.create_appointment(milestone=self.milestone)
+        self.notification = self.create_notification(appointment=self.appointment)
 
     def test_help(self):
         "Prefix and keyword should return the help."
@@ -82,9 +89,45 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
 
     def test_appointment_confirmed(self):
         "Successfully confirm an upcoming appointment."
+        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Thank you'))
+        notification = Notification.objects.get(pk=self.notification.pk)
+        self.assertTrue(notification.confirmed)
+        self.assertEqual(notification.status, Notification.STATUS_CONFIRMED)
+        appointment = Appointment.objects.get(pk=self.appointment.pk)
+        self.assertTrue(appointment.confirmed)
 
     def test_no_upcoming_appointment(self):
         "Matched user has no upcoming appointment notifications."
+        self.notification.delete()
+        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no unconfirmed' in reply)
 
     def test_already_confirmed(self):
         "Matched user has already confirmed the upcoming appointment."
+        self.notification.confirm()
+        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no unconfirmed' in reply)
+
+    def test_no_subscription(self):
+        "Name/ID does not match a subscription."
+        self.subscription.delete()
+        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('does not match an active subscription' in reply)
+
+    def test_subscription_ended(self):
+        "Name/ID subscription has ended."
+        self.subscription.end = now()
+        self.subscription.save()
+        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('does not match an active subscription' in reply)

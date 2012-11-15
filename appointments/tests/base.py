@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from rapidsms.models import Connection, Backend
 
-from ..models import Timeline, TimelineSubscription
+from ..models import Timeline, TimelineSubscription, Milestone, Appointment, Notification, now
 
 
 class AppointmentDataTestCase(TestCase):
@@ -45,7 +45,7 @@ class AppointmentDataTestCase(TestCase):
         return Timeline.objects.create(**defaults)
 
     def create_timeline_subscription(self, **kwargs):
-        "Create a dummy timeline."
+        "Create a dummy timeline subscription."
         defaults = {
             'pin': self.get_random_string(),
         }
@@ -55,3 +55,36 @@ class AppointmentDataTestCase(TestCase):
         if 'connection' not in defaults:
             defaults['connection'] = self.create_connection()
         return TimelineSubscription.objects.create(**defaults)
+
+    def create_milestone(self, **kwargs):
+        "Create a dummy milestone."
+        defaults = {
+            'name': self.get_random_string(),
+            'offset': random.randint(7, 365)
+        }
+        defaults.update(kwargs)
+        if 'timeline' not in defaults:
+            defaults['timeline'] = self.create_timeline()
+        return Milestone.objects.create(**defaults)
+
+    def create_appointment(self, **kwargs):
+        "Create a dummy appointment."
+        defaults = {
+            'date': now(),
+        }
+        defaults.update(kwargs)
+        if 'milestone' not in defaults:
+            defaults['milestone'] = self.create_milestone()
+        if 'connection' not in defaults:
+            defaults['connection'] = self.create_connection()
+        return Appointment.objects.create(**defaults)
+
+    def create_notification(self, **kwargs):
+        "Create a dummy notification."
+        defaults = {
+            'message': self.get_random_string(),
+        }
+        defaults.update(kwargs)
+        if 'appointment' not in defaults:
+            defaults['appointment'] = self.create_appointment()
+        return Notification.objects.create(**defaults)

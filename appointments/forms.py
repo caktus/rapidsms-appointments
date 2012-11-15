@@ -2,10 +2,11 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db.models import Q
+from django.forms.util import ErrorList 
 from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Timeline, Appointment, Notification, now
+from .models import Timeline, TimelineSubscription, Appointment, Notification, now
 
 
 class NewForm(forms.Form):
@@ -33,7 +34,7 @@ class NewForm(forms.Form):
         return keyword
 
 
-class PlainErrorList(forms.ErrorList):
+class PlainErrorList(ErrorList):
     "Customization of the error list for including in an SMS message."
 
     def as_text(self):
@@ -86,8 +87,8 @@ class ConfirmForm(HandlerForm):
                 confirmed__isnull=True,
                 appointment__confirmed__isnull=True,
                 appointment__reschedule__isnull=True,
-                appointment__date__lt=now(),
-                milestone__timeline__in=timelines
+                appointment__date__lte=now(),
+                appointment__milestone__timeline__in=timelines
             ).order_by('-sent')[0]
         except IndexError:
             # No unconfirmed notifications
