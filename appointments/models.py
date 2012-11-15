@@ -87,4 +87,14 @@ class Notification(models.Model):
     message = models.CharField(max_length=160)
 
     def __unicode__(self):
-        return 'Notification for %s on %s' % (self.connection, self.sent.isoformat()) 
+        return 'Notification for %s on %s' % (self.connection, self.sent.isoformat())
+
+    def confirm(self, manual=False):
+        "Mark appointment as confirmed."
+        confirmed = now()
+        status = Notification.STATUS_MANUAL if manual else Notification.STATUS_CONFIRMED
+        self.confirmed = confirmed
+        self.status = status
+        Notification.objects.filter(pk=self.pk).update(confirmed=confirmed, status=status)
+        self.appointment.confirmed = confirmed
+        Appointment.objects.filter(pk=self.appointment_id).update(confirmed=confirmed)

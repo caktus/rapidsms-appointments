@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
 from .base import AppointmentHandler
-from ..forms import NewMessageForm
+from ..forms import NewForm
 from ..models import Timeline, TimelineSubscription, now
 
 
@@ -31,7 +31,7 @@ class NewHandler(AppointmentHandler):
     def handle(self, text):
         "Register user with a given timeline based on the keyword match."
         parsed = self.parse_message(text)
-        form = NewMessageForm(data=parsed)
+        form = NewForm(data=parsed)
         if form.is_valid():
             result = {}
             timeline = form.cleaned_data['timeline']

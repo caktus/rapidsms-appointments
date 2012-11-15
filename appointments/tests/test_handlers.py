@@ -79,3 +79,12 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('APPT CONFIRM <NAME/ID>' in reply)
+
+    def test_appointment_confirmed(self):
+        "Successfully confirm an upcoming appointment."
+
+    def test_no_upcoming_appointment(self):
+        "Matched user has no upcoming appointment notifications."
+
+    def test_already_confirmed(self):
+        "Matched user has already confirmed the upcoming appointment."
