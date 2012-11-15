@@ -9,12 +9,29 @@ class AppointmentHandler(KeywordHandler):
     "Base keyword handler for the APPT prefix."
 
     prefix = 'APPT'
+    form = None
+    success_text = ''
 
     @classmethod
     def _keyword(cls):
         if hasattr(cls, "keyword"):
             pattern = r"^\s*(?:%s)\s*(?:%s)(?:[\s,;:]+(.+))?$" % (cls.prefix, cls.keyword)
             return re.compile(pattern, re.IGNORECASE)
+
+    def handle(self, text):
+        "Parse text, validate data, and respond."
+        parsed = self.parse_message(text)
+        form = self.form(data=parsed, connection=self.msg.connection)
+        if form.is_valid():
+            form.save()
+            self.respond(self.success_text)
+        else:
+            error = form.error()
+            if error is None:
+                self.unknown()
+            else:
+                self.respond(error)
+        return True
 
     def help(self):
         "Return help mesage."
