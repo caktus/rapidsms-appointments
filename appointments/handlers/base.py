@@ -23,8 +23,8 @@ class AppointmentHandler(KeywordHandler):
         parsed = self.parse_message(text)
         form = self.form(data=parsed, connection=self.msg.connection)
         if form.is_valid():
-            form.save()
-            self.respond(self.success_text)
+            params = form.save()
+            self.respond(self.success_text % params)
         else:
             error = form.error()
             if error is None:

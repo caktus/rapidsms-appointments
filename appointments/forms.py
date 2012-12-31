@@ -2,36 +2,12 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db.models import Q
+from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.util import ErrorList 
 from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Timeline, TimelineSubscription, Appointment, Notification, now
-
-
-class NewForm(forms.Form):
-    "Register user for new timeline."
-
-    keyword = forms.CharField()
-    name = forms.CharField()
-    date = forms.DateField(required=False)
-
-    def clean_keyword(self):
-        "Check if this keyword is associated with any timeline."
-        keyword = self.cleaned_data.get('keyword', '')
-        match = None
-        if keyword:
-            # Query DB for valid keywords
-            for timeline in Timeline.objects.filter(slug__icontains=keyword):
-                if keyword.strip().lower() in timeline.keywords:
-                    match = timeline
-                    break
-        if match is None:
-            # Invalid keyword
-            raise forms.ValidationError(_('Unknown keyword.'))
-        else:
-            self.cleaned_data['timeline'] = match
-        return keyword
 
 
 class PlainErrorList(ErrorList):
@@ -60,9 +36,82 @@ class HandlerForm(forms.Form):
                 if field in self.errors:
                     error = self.errors[field].as_text()
                     break
-            if error is None and forms.NON_FIELD_ERRORS in self.errors:
-                error = self.errors[forms.NON_FIELD_ERRORS].as_text()
+            if error is None and NON_FIELD_ERRORS in self.errors:
+                error = self.errors[NON_FIELD_ERRORS].as_text()
         return error
+
+    def save(self):
+        "Update necessary data and return parameters for the success message."
+        return {}
+
+
+class NewForm(HandlerForm):
+    "Register user for new timeline."
+
+    keyword = forms.CharField()
+    name = forms.CharField(error_messages={
+        'required': _('Sorry, you must include a name or id for your '
+            'appointments subscription.')
+    })
+    date = forms.DateField(required=False, error_messages={
+        'invalid': _('Sorry, we cannot understand that date format. '
+            'For the best results please use the ISO YYYY-MM-DD format.')
+    })
+
+    def clean_keyword(self):
+        "Check if this keyword is associated with any timeline."
+        keyword = self.cleaned_data.get('keyword', '')
+        match = None
+        if keyword:
+            # Query DB for valid keywords
+            for timeline in Timeline.objects.filter(slug__icontains=keyword):
+                if keyword.strip().lower() in timeline.keywords:
+                    match = timeline
+                    break
+        if match is None:
+            # Invalid keyword
+            raise forms.ValidationError(_('Sorry, we could not find any appointments for '
+                    'the keyword: %s') % keyword)
+        else:
+            self.cleaned_data['timeline'] = match
+        return keyword
+
+    def clean(self):
+        "Check for previous subscription."
+        timeline = self.cleaned_data.get('timeline', None)
+        name = self.cleaned_data.get('name', None)
+        if name is not None and timeline is not None:
+            previous = TimelineSubscription.objects.filter(
+                Q(Q(end__isnull=True) | Q(end__gte=now())),
+                timeline=timeline, connection=self.connection, pin=name
+            )
+            if previous.exists():
+                params = {'timeline': timeline.name, 'name': name}
+                message = _('Sorry, you previously registered a %(timeline)s for '
+                        '%(name)s. You will be notified when '
+                        'it is time for the next appointment.') % params
+                raise forms.ValidationError(message)
+        return self.cleaned_data
+
+    def save(self):
+        if not self.is_valid():
+            return None
+        timeline = self.cleaned_data['timeline']
+        name = self.cleaned_data['name']
+        start = self.cleaned_data.get('date', now()) or now()
+        # FIXME: There is a small race condition here that we could
+        # create two subscriptions in parallel
+        TimelineSubscription.objects.create(
+            timeline=timeline, start=start, pin=name,
+            connection=self.connection
+        )
+        user = ' %s' % self.connection.contact.name if self.connection.contact else ''
+        return {
+            'user': user,
+            'date': start,
+            'name': name,
+            'timeline': timeline.name,
+        }
 
 
 class ConfirmForm(HandlerForm):
@@ -80,7 +129,7 @@ class ConfirmForm(HandlerForm):
         ).values_list('timeline', flat=True)
         if not timelines:
             # PIN doesn't match an active subscription for this connection
-            raise forms.ValidationError(_('Name/ID does not match an active subscription.'))
+            raise forms.ValidationError(_('Sorry, name/id does not match an active subscription.'))
         try:
             notification = Notification.objects.filter(
                 status=Notification.STATUS_SENT,
@@ -92,7 +141,7 @@ class ConfirmForm(HandlerForm):
             ).order_by('-sent')[0]
         except IndexError:
             # No unconfirmed notifications
-            raise forms.ValidationError(_('You have no unconfirmed appointment notifications.'))
+            raise forms.ValidationError(_('Sorry, you have no unconfirmed appointment notifications.'))
         else:
             self.cleaned_data['notification'] = notification
         return name
@@ -103,5 +152,5 @@ class ConfirmForm(HandlerForm):
             return None
         notification = self.cleaned_data['notification']
         notification.confirm()
-        return notification
+        return {}
 
