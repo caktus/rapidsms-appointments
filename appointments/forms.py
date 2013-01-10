@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django import forms
 from django.db.models import Q
 from django.forms.forms import NON_FIELD_ERRORS
-from django.forms.util import ErrorList 
+from django.forms.util import ErrorList
 from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext_lazy as _
 
@@ -33,10 +33,10 @@ class HandlerForm(forms.Form):
         if self.errors:
             # Return first field error based on field order
             for field in self.fields:
-                if field in self.errors:
-                    error = self.errors[field].as_text()
+                if field in errors:
+                    error = errors[field].as_text()
                     break
-            if error is None and NON_FIELD_ERRORS in self.errors:
+            if error is None and NON_FIELD_ERRORS in errors:
                 error = self.errors[NON_FIELD_ERRORS].as_text()
         return error
 

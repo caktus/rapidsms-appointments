@@ -29,7 +29,7 @@ class NewHandler(AppointmentHandler):
             if tokens:
                 # Remaining tokens should be a date string
                 result['date'] = ' '.join(tokens)
-        return result       
+        return result
 
     def __handle(self, text):
         "Register user with a given timeline based on the keyword match."

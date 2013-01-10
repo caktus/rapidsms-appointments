@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 try:
     from django.utils.timezone import now
-except ImportError: # Django < 1.4
+except ImportError:  # Django < 1.4
     now = datetime.datetime.now
 
 
@@ -36,7 +36,7 @@ class TimelineSubscription(models.Model):
     end = models.DateTimeField(_('end date'), default=None, null=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.connection, self.timeline) 
+        return '%s - %s' % (self.connection, self.timeline)
 
 
 class Milestone(models.Model):
@@ -62,13 +62,13 @@ class Appointment(models.Model):
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):
-        return 'Appointment for %s on %s' % (self.connection, self.date.isoformat()) 
+        return 'Appointment for %s on %s' % (self.connection, self.date.isoformat())
 
 
 class Notification(models.Model):
     "Record of user notification for an appointment."
 
-    STATUS_SENT =  1
+    STATUS_SENT = 1
     STATUS_CONFIRMED = 2
     STATUS_MANUAL = 3
     STATUS_ERROR = 4
