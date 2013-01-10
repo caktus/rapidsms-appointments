@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from django.utils.translation import ugettext_lazy as _
+
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
 
 
