@@ -1,13 +1,8 @@
 from __future__ import unicode_literals
 
-import datetime
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-try:
-    from django.utils.timezone import now
-except ImportError:  # Django < 1.4
-    now = datetime.datetime.now
+from django.utils.timezone import now
 
 
 class Timeline(models.Model):
@@ -59,6 +54,7 @@ class Appointment(models.Model):
     confirmed = models.DateTimeField(blank=True, null=True, default=None)
     reschedule = models.ForeignKey('self', blank=True, null=True, related_name='appointments')
     missed = models.BooleanField(default=True, blank=True)
+    reminded = models.BooleanField(default=False)
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):

@@ -2,8 +2,10 @@ from __future__ import unicode_literals
 
 import datetime
 
+from rapidsms.tests.harness import RapidTest
+
 from .base import AppointmentDataTestCase, Appointment, Milestone, now
-from ..tasks import generate_appointments
+from ..tasks import generate_appointments, send_appointment_reminders, APPT_REMINDER
 
 
 class GenerateAppointmentsTestCase(AppointmentDataTestCase):
@@ -56,3 +58,56 @@ class GenerateAppointmentsTestCase(AppointmentDataTestCase):
         self.assertEqual(0, Appointment.objects.all().count())
         generate_appointments(30)
         self.assertEqual(5, Appointment.objects.all().count())
+
+
+class SendAppointmentRemindersTestCase(AppointmentDataTestCase, RapidTest):
+    "Task to send reminders for upcoming Appointments"
+
+    def setUp(self):
+        self.backend = self.create_backend(name='mockbackend')
+        self.cnx = self.create_connection(backend=self.backend)
+        self.appointment = self.create_appointment(connection=self.cnx)
+
+    def test_send_reminders(self):
+        "Test the default task"
+        self.assertEqual(0, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        send_appointment_reminders()
+        self.assertEqual(1, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        msg = APPT_REMINDER % {'date': self.appointment.date}
+        self.assertEqual(self.outbound[0].text, msg)
+        self.assertEqual(self.outbound[0].connection, self.cnx)
+
+    def test_send_reminders_reminded(self):
+        "The task should generate no reminders if a reminder has already been sent"
+        self.appointment.reminded = True
+        self.appointment.save()
+        self.assertEqual(1, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        send_appointment_reminders()
+        self.assertEqual(1, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        self.assertEqual(0, len(self.outbound))
+
+    def test_send_reminders_out_of_range(self):
+        "The task should generate no reminders if the appointment(s) are out of range"
+        self.appointment.date = self.appointment.date + datetime.timedelta(days=10)
+        self.appointment.save()
+        self.assertEqual(1, Appointment.objects.filter(connection=self.cnx, reminded=False).count())
+        send_appointment_reminders()
+        self.assertEqual(0, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        self.assertEqual(0, len(self.outbound))
+
+    def test_send_reminders_multiple_users(self):
+        "The task should generate reminders for all applicable appointments"
+        self.cnx2 = self.create_connection(identity='johndoe', backend=self.backend)
+        self.create_appointment(connection=self.cnx2)
+        self.assertEqual(0, Appointment.objects.filter(reminded=True).count())
+        send_appointment_reminders()
+        self.assertEqual(2, Appointment.objects.filter(reminded=True).count())
+        self.assertEqual(2, len(self.outbound))
+
+    def test_send_reminders_for_n_days(self):
+        "The task should generate appointments when supplied N days as an argument"
+        self.create_appointment(connection=self.cnx, date=now() + datetime.timedelta(days=10))
+        self.assertEqual(0, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        send_appointment_reminders(30)
+        self.assertEqual(2, Appointment.objects.filter(connection=self.cnx, reminded=True).count())
+        self.assertEqual(2, len(self.outbound))

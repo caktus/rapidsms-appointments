@@ -70,7 +70,7 @@ class AppointmentDataTestCase(TestCase):
     def create_appointment(self, **kwargs):
         "Create a dummy appointment."
         defaults = {
-            'date': now(),
+            'date': now().date(),
         }
         defaults.update(kwargs)
         if 'milestone' not in defaults:

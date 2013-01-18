@@ -4,8 +4,13 @@ from celery import task
 
 from django.db.models import Q
 from django.utils.timezone import now
+from django.utils.translation import ugettext_lazy as _
+
+from rapidsms.router import send
 
 from .models import TimelineSubscription, Appointment
+
+APPT_REMINDER = _('This is a reminder for your upcoming appointment on %(date)s. Please confirm.')
 
 
 @task()
@@ -36,3 +41,24 @@ def generate_appointments(days=14):
                                                     connection=sub.connection,
                                                     milestone=milestone,
                                                     date=appt_date.date())
+
+
+@task()
+def send_appointment_reminders(days=7):
+    """
+    Task to reminde connections of upcoming Appointment(s)
+
+    Arguments:
+    days: The number of upcoming days to filter upcoming Appointments
+    """
+    start = now()
+    end = (start + datetime.timedelta(days=days)).replace(hour=23,
+                                                          minute=59,
+                                                          second=59)
+    # get all subscriptions that haven't ended
+    query = Q(date__gte=start) & Q(date__lte=end)
+    appts = Appointment.objects.filter(Q(query), reminded=False)
+    for appt in appts:
+        send(APPT_REMINDER % {'date': appt.date}, appt.connection)
+        appt.reminded = True
+        appt.save()
