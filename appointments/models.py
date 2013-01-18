@@ -54,7 +54,6 @@ class Appointment(models.Model):
     confirmed = models.DateTimeField(blank=True, null=True, default=None)
     reschedule = models.ForeignKey('self', blank=True, null=True, related_name='appointments')
     missed = models.BooleanField(default=True, blank=True)
-    reminded = models.BooleanField(default=False)
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):
@@ -83,7 +82,7 @@ class Notification(models.Model):
     message = models.CharField(max_length=160)
 
     def __unicode__(self):
-        return 'Notification for %s on %s' % (self.connection, self.sent.isoformat())
+        return 'Notification for %s on %s' % (self.appointment.connection, self.sent.isoformat())
 
     def confirm(self, manual=False):
         "Mark appointment as confirmed."

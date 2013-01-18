@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from rapidsms.router import send
 
-from .models import TimelineSubscription, Appointment
+from .models import TimelineSubscription, Appointment, Notification
 
 APPT_REMINDER = _('This is a reminder for your upcoming appointment on %(date)s. Please confirm.')
 
@@ -44,9 +44,9 @@ def generate_appointments(days=14):
 
 
 @task()
-def send_appointment_reminders(days=7):
+def send_appointment_notifications(days=7):
     """
-    Task to reminde connections of upcoming Appointment(s)
+    Task to send reminders notifications for upcoming Appointment
 
     Arguments:
     days: The number of upcoming days to filter upcoming Appointments
@@ -57,8 +57,12 @@ def send_appointment_reminders(days=7):
                                                           second=59)
     # get all subscriptions that haven't ended
     query = Q(date__gte=start) & Q(date__lte=end)
-    appts = Appointment.objects.filter(Q(query), reminded=False)
+    blacklist = [Notification.STATUS_SENT, Notification.STATUS_CONFIRMED, Notification.STATUS_MANUAL]
+    appts = Appointment.objects.filter(query).exclude(notifications__status__in=blacklist)
     for appt in appts:
-        send(APPT_REMINDER % {'date': appt.date}, appt.connection)
-        appt.reminded = True
-        appt.save()
+        msg = APPT_REMINDER % {'date': appt.date}
+        send(msg, appt.connection)
+        Notification.objects.create(appointment=appt,
+                                    status=Notification.STATUS_SENT,
+                                    sent=now(),
+                                    message=msg)

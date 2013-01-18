@@ -7,7 +7,7 @@ from ..forms import ConfirmForm
 
 
 class ConfirmHandler(AppointmentHandler):
-    "Confirm an appointment notificiation."
+    "Confirm an appointment notification."
 
     keyword = 'confirm'
     form = ConfirmForm
