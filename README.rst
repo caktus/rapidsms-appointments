@@ -14,14 +14,15 @@ Dependencies
 rapidsms-appointments currently runs on Python 2.6 and 2.7 and requires the following
 Python packages:
 
-- Django >= 1.3
-- RapidSMS >= 0.9.6a
+- Django >= 1.4
+- RapidSMS >= 0.11.0
+- Celery >= 3.0.13
 
 
 Documentation
 -----------------------------------
 
-Documentation on using rapidsms-appointments is available on 
+Documentation on using rapidsms-appointments is available on
 `Read The Docs <http://readthedocs.org/docs/rapidsms-appointments/>`_.
 
 
@@ -50,7 +51,7 @@ of the `tox <http://tox.readthedocs.org/>`_ configuration.::
 License
 --------------------------------------
 
-rapidsms-appointments is released under the BSD License. See the 
+rapidsms-appointments is released under the BSD License. See the
 `LICENSE <https://github.com/caktus/rapidsms-appointments/blob/master/LICENSE>`_ file for more details.
 
 
