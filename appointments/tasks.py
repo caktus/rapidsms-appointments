@@ -3,7 +3,10 @@ import datetime
 from celery import task
 
 from django.db.models import Q
-from django.utils.timezone import now
+try:
+    from django.utils.timezone import now
+except ImportError:  # Django < 1.4
+    now = datetime.datetime.now
 
 from .models import TimelineSubscription, Appointment
 
