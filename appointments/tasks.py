@@ -3,8 +3,11 @@ import datetime
 from celery import task
 
 from django.db.models import Q
-from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
+try:
+    from django.utils.timezone import now
+except ImportError:  # Django < 1.4
+    now = datetime.datetime.now
 
 from rapidsms.router import send
 

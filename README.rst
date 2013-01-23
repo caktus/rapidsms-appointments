@@ -14,7 +14,7 @@ Dependencies
 rapidsms-appointments currently runs on Python 2.6 and 2.7 and requires the following
 Python packages:
 
-- Django >= 1.4
+- Django >= 1.3
 - RapidSMS >= 0.11.0
 - Celery >= 3.0.13
 
