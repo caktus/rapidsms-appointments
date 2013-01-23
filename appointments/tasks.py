@@ -20,19 +20,18 @@ def generate_appointments(days=14):
     end = (start + datetime.timedelta(days=days)).replace(hour=23,
                                                           minute=59,
                                                           second=59)
-    # get all subscriptions that haven't ended
+    #Get all subscriptions that haven't ended
     query = Q(end__lte=end) | Q(end__isnull=True)
     subs = TimelineSubscription.objects.filter(query)
 
     for sub in subs:
-        milestones = sub.timeline.milestones.all()
-        milestones = [x for x in milestones if \
-                        sub.start + datetime.timedelta(days=x.offset) >= start \
-                        and sub.start + datetime.timedelta(days=x.offset) <= end]
-        # Create appointment(s) for this subscription as within the window
-        for milestone in milestones:
-            appt_date = sub.start + datetime.timedelta(days=milestone.offset)
-            appt, created = Appointment.objects.get_or_create(
+        for milestone in sub.timeline.milestones.all():
+            offset = milestone.offset
+            milestone_date = sub.start + datetime.timedelta(days=offset)
+            #Create appointment(s) for this subscription within the task window
+            if start <= milestone_date <= end:
+                appt, created = Appointment.objects.get_or_create(
                                                     connection=sub.connection,
                                                     milestone=milestone,
-                                                    date=appt_date.date())
+                                                    date=milestone_date.date()
+                                                    )
