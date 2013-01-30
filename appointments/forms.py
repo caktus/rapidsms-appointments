@@ -53,7 +53,7 @@ class NewForm(HandlerForm):
         'required': _('Sorry, you must include a name or id for your '
             'appointments subscription.')
     })
-    date = forms.DateField(required=False, error_messages={
+    date = forms.DateTimeField(required=False, error_messages={
         'invalid': _('Sorry, we cannot understand that date format. '
             'For the best results please use the ISO YYYY-MM-DD format.')
     })
