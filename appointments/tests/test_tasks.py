@@ -2,14 +2,11 @@ from __future__ import unicode_literals
 
 import datetime
 
-from rapidsms.router import get_router
-from rapidsms.tests.harness import RapidTest
-
 from .base import AppointmentDataTestCase, Appointment, Milestone, Notification, now
 from ..tasks import generate_appointments, send_appointment_notifications, APPT_REMINDER
 
 
-class GenerateAppointmentsTestCase(AppointmentDataTestCase, RapidTest):
+class GenerateAppointmentsTestCase(AppointmentDataTestCase):
     "Task to generate future appointments"
 
     def setUp(self):
@@ -61,7 +58,7 @@ class GenerateAppointmentsTestCase(AppointmentDataTestCase, RapidTest):
         self.assertEqual(5, Appointment.objects.all().count())
 
 
-class SendAppointmentNotificationsTestCase(AppointmentDataTestCase, RapidTest):
+class SendAppointmentNotificationsTestCase(AppointmentDataTestCase):
     "Task to send notifications for upcoming Appointments"
 
     def setUp(self):

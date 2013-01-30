@@ -3,14 +3,13 @@ from __future__ import unicode_literals
 import random
 import string
 
-from django.test import TestCase
-
 from rapidsms.models import Connection, Backend
+from rapidsms.tests.harness import RapidTest
 
 from ..models import Timeline, TimelineSubscription, Milestone, Appointment, Notification, now
 
 
-class AppointmentDataTestCase(object):
+class AppointmentDataTestCase(RapidTest):
     "Helper methods for creating test data."
 
     def get_random_string(self, length=10):

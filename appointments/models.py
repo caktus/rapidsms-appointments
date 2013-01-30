@@ -2,7 +2,10 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.utils.timezone import now
+try:
+    from django.utils.timezone import now
+except ImportError:  # Django < 1.4
+    now = datetime.datetime.now
 
 
 class Timeline(models.Model):
