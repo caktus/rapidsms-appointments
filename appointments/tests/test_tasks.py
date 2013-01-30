@@ -66,10 +66,6 @@ class SendAppointmentNotificationsTestCase(AppointmentDataTestCase):
         self.cnx = self.create_connection(backend=self.backend)
         self.appointment = self.create_appointment(connection=self.cnx)
 
-    # Remove me when router.send issue is resolved; this is for debugging purposes only
-    def test_foo(self):
-        send_appointment_notifications()
-
     def test_send_notifications(self):
         "Test the default task"
         self.assertEqual(0, Notification.objects.filter(appointment=self.appointment).count())

@@ -63,7 +63,6 @@ def send_appointment_notifications(days=7):
     appts = Appointment.objects.filter(query).exclude(notifications__status__in=blacklist)
     for appt in appts:
         msg = APPT_REMINDER % {'date': appt.date}
-        # This function call is what keeps hold of the database connection in tests....
         send(msg, appt.connection)
         Notification.objects.create(appointment=appt,
                                     status=Notification.STATUS_SENT,
