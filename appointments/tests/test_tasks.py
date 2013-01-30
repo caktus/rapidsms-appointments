@@ -2,13 +2,14 @@ from __future__ import unicode_literals
 
 import datetime
 
+from rapidsms.router import get_router
 from rapidsms.tests.harness import RapidTest
 
 from .base import AppointmentDataTestCase, Appointment, Milestone, Notification, now
 from ..tasks import generate_appointments, send_appointment_notifications, APPT_REMINDER
 
 
-class GenerateAppointmentsTestCase(AppointmentDataTestCase):
+class GenerateAppointmentsTestCase(AppointmentDataTestCase, RapidTest):
     "Task to generate future appointments"
 
     def setUp(self):
@@ -67,6 +68,10 @@ class SendAppointmentNotificationsTestCase(AppointmentDataTestCase, RapidTest):
         self.backend = self.create_backend(name='mockbackend')
         self.cnx = self.create_connection(backend=self.backend)
         self.appointment = self.create_appointment(connection=self.cnx)
+
+    # Remove me when router.send issue is resolved; this is for debugging purposes only
+    def test_foo(self):
+        send_appointment_notifications()
 
     def test_send_notifications(self):
         "Test the default task"

@@ -18,6 +18,11 @@ if not settings.configured:
         ),
         SITE_ID=1,
         SECRET_KEY='this-is-just-for-tests-so-not-that-secret',
+        INSTALLED_BACKENDS = {
+            "message_tester": {
+                "ENGINE": "rapidsms.contrib.httptester.backend",
+            },
+        }
     )
 
 

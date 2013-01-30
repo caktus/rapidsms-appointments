@@ -10,7 +10,7 @@ from rapidsms.models import Connection, Backend
 from ..models import Timeline, TimelineSubscription, Milestone, Appointment, Notification, now
 
 
-class AppointmentDataTestCase(TestCase):
+class AppointmentDataTestCase(object):
     "Helper methods for creating test data."
 
     def get_random_string(self, length=10):
