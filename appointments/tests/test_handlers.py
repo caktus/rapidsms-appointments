@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 
+from datetime import timedelta
+
 from .base import AppointmentDataTestCase, Notification, Appointment, now
 from ..handlers.confirm import ConfirmHandler
 from ..handlers.new import NewHandler
+from ..handlers.status import StatusHandler
 
 
 class NewHandlerTestCase(AppointmentDataTestCase):
@@ -128,6 +131,88 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         self.subscription.end = now()
         self.subscription.save()
         replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('does not match an active subscription' in reply)
+
+
+class StatusHandlerTestCase(AppointmentDataTestCase):
+    "Keyword handler for updating the status of appointments."
+
+    def setUp(self):
+        self.timeline = self.create_timeline(name='Test', slug='foo')
+        self.connection = self.create_connection()
+        self.subscription = self.create_timeline_subscription(
+            timeline=self.timeline, connection=self.connection, pin='bar')
+        StatusHandler._mock_backend = self.connection.backend
+        self.milestone = self.create_milestone(timeline=self.timeline)
+        self.appointment = self.create_appointment(milestone=self.milestone)
+
+    def test_help(self):
+        "Prefix and keyword should return the help."
+        replies = StatusHandler.test('APPT STATUS')
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('APPT STATUS <NAME/ID> <SAW|MISSED>' in reply)
+
+    def test_appointment_status_updated(self):
+        "Successfully update an upcoming appointment."
+        for status in Appointment.STATUS_CHOICES[1:]:
+            appt = self.create_appointment(milestone=self.milestone)
+            replies = StatusHandler.test('APPT STATUS bar %s' % status[1].upper(),
+                                         identity=self.connection.identity)
+            self.assertEqual(len(replies), 1)
+            reply = replies[0]
+            self.assertTrue(reply.startswith('Thank you'))
+            self.assertTrue(appt.status, status[0])
+
+    def test_appointment_status_invalid_update(self):
+        "Successfully update an upcoming appointment."
+        replies = StatusHandler.test('APPT STATUS bar FOO', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Sorry, the status update must be in'))
+
+    def test_no_recent_appointment(self):
+        "Matched user has no recent appointment."
+        self.appointment.delete()
+        replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no recent appointments' in reply)
+
+    def test_no_recent_appointment_needing_update(self):
+        "Matched user has no recent appointment that needs updating."
+        self.appointment.status = Appointment.STATUS_MISSED
+        self.appointment.save()
+        replies = StatusHandler.test('APPT STATUS bar MISSED', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no recent appointments' in reply)
+
+    def test_future_appointment(self):
+        "Matched user has no recent appointment."
+        tomorrow = timedelta(days=1)
+        self.appointment.date = self.appointment.date + tomorrow
+        self.appointment.save()
+        replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no recent appointments' in reply)
+
+    def test_no_subscription(self):
+        "Name/ID does not match a subscription."
+        self.subscription.delete()
+        replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('does not match an active subscription' in reply)
+
+    def test_subscription_ended(self):
+        "Name/ID subscription has ended."
+        self.subscription.end = now()
+        self.subscription.save()
+        replies = StatusHandler.test('APPT STATUS bar MISSED', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)

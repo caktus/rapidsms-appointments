@@ -75,8 +75,8 @@ original subscription.
 Once the appointment has passed the user can mark that the appointment was made
 or missed::
 
-    APPT SAW Joe
-    APPT MISSED Joe
+    APPT STATUS Joe SAW
+    APPT STATUS Joe MISSED
 
 Appointments can also be reschuduled via::
 

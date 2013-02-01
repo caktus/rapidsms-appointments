@@ -4,7 +4,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from .base import AppointmentHandler
 from ..forms import StatusForm
-from ..models import Appointment
 
 
 class StatusHandler(AppointmentHandler):
@@ -41,5 +40,5 @@ class StatusHandler(AppointmentHandler):
             else:
                 # Non-field error
                 self.respond(_('Sorry, we cannot understand that message. '
-                    'For additional help send: %(prefix)s NEW') % {'prefix': self.prefix})
+                    'For additional help send: %(prefix)s STATUS') % {'prefix': self.prefix})
         return True

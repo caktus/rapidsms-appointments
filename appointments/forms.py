@@ -154,3 +154,55 @@ class ConfirmForm(HandlerForm):
         notification.confirm()
         return {}
 
+
+class StatusForm(HandlerForm):
+    "Set the status of an appointment that a patient was seen"
+
+    name = forms.CharField()
+    status = forms.CharField()
+
+    def clean_status(self):
+        "Map values from inbound messages to Appointment.STATUS_CHOICES"
+        raw_status = self.cleaned_data.get('status', '')
+        valid_status_update = Appointment.STATUS_CHOICES[1:]
+        status = next((x[0] for x in valid_status_update if x[1].upper() == raw_status.upper()), None)
+        if not status:
+            choices = tuple([x[1].upper() for x in valid_status_update])
+            params = {'choices': ', '.join(choices), 'raw_status': raw_status}
+            msg = _('Sorry, the status update must be in %(choices)s. You supplied %(raw_status)s') % params
+            raise forms.ValidationError(msg)
+        return status
+
+    def clean_name(self):
+        "Find the most recent appointment for the patient."
+        name = self.cleaned_data.get('name', '')
+        # name should be a pin for an active timeline subscription
+        timelines = TimelineSubscription.objects.filter(
+            Q(Q(end__gte=now()) | Q(end__isnull=True)),
+            connection=self.connection, pin=name
+        ).values_list('timeline', flat=True)
+        if not timelines:
+            # PIN doesn't match an active subscription for this connection
+            raise forms.ValidationError(_('Sorry, name/id does not match an active subscription.'))
+        try:
+            appointment = Appointment.objects.filter(
+                status=Appointment.STATUS_DEFAULT,
+                date__lte=now(),
+                milestone__timeline__in=timelines
+            ).order_by('-date')[0]
+        except IndexError:
+            # No recent appointment that is not STATUS_DEFAULT
+            msg = _('Sorry, user has no recent appointments that require a status update.')
+            raise forms.ValidationError(msg)
+        else:
+            self.cleaned_data['appointment'] = appointment
+        return name
+
+    def save(self):
+        "Mark the appointment status and return it"
+        if not self.is_valid():
+            return None
+        appointment = self.cleaned_data['appointment']
+        appointment.status = self.cleaned_data['status']
+        appointment.save()
+        return {}

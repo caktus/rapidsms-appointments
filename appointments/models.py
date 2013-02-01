@@ -51,12 +51,22 @@ class Milestone(models.Model):
 class Appointment(models.Model):
     "Instance of a subscribed user hitting a milestone."
 
+    STATUS_DEFAULT = 1
+    STATUS_SAW = 2
+    STATUS_MISSED = 3
+
+    STATUS_CHOICES = (
+        (STATUS_DEFAULT, _('Not Yet Occurred')),
+        (STATUS_SAW, _('Saw')),
+        (STATUS_MISSED, _('Missed')),
+    )
+
     milestone = models.ForeignKey(Milestone, related_name='appointments')
     connection = models.ForeignKey('rapidsms.Connection', related_name='appointments')
     date = models.DateField(_('appointment date'))
     confirmed = models.DateTimeField(blank=True, null=True, default=None)
     reschedule = models.ForeignKey('self', blank=True, null=True, related_name='appointments')
-    missed = models.BooleanField(default=True, blank=True)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_DEFAULT)
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):
