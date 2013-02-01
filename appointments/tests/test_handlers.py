@@ -167,7 +167,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
             self.assertTrue(appt.status, status[0])
 
     def test_appointment_status_invalid_update(self):
-        "Successfully update an upcoming appointment."
+        "Do not update if supplied status text is not in STATUS_CHOICES."
         replies = StatusHandler.test('APPT STATUS bar FOO', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -191,7 +191,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
         self.assertTrue('no recent appointments' in reply)
 
     def test_future_appointment(self):
-        "Matched user has no recent appointment."
+        "Matched user has only future dated appointment."
         tomorrow = timedelta(days=1)
         self.appointment.date = self.appointment.date + tomorrow
         self.appointment.save()
