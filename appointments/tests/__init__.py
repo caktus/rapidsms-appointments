@@ -1,2 +1,2 @@
-from .test_handlers import NewHandlerTestCase, ConfirmHandlerTestCase
+from .test_handlers import NewHandlerTestCase, ConfirmHandlerTestCase, QuitHandlerTestCase
 from .test_tasks import GenerateAppointmentsTestCase, SendAppointmentNotificationsTestCase

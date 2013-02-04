@@ -1,8 +1,12 @@
 from __future__ import unicode_literals
 
-from .base import AppointmentDataTestCase, Notification, Appointment, now
+from datetime import timedelta
+
+from .base import (AppointmentDataTestCase, Notification, Appointment,
+    TimelineSubscription, now)
 from ..handlers.confirm import ConfirmHandler
 from ..handlers.new import NewHandler
+from ..handlers.quit import QuitHandler
 
 
 class NewHandlerTestCase(AppointmentDataTestCase):
@@ -131,3 +135,78 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
+
+
+class QuitHandlerTestCase(AppointmentDataTestCase):
+    "Keyword handler for unsubscribing users to timelines"
+
+    def setUp(self):
+        self.timeline = self.create_timeline(name='Test', slug='foo')
+        self.connection = self.create_connection()
+        self.subscription = self.create_timeline_subscription(
+            timeline=self.timeline, connection=self.connection, pin='bar')
+        QuitHandler._mock_backend = self.connection.backend
+
+    def test_help(self):
+        "Prefix and keyword should return the help for quitting a subscription."
+        replies = QuitHandler.test('APPT QUIT', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('APPT QUIT <KEY> <NAME/ID> <DATE>' in reply)
+
+    def test_match(self):
+        "Send a successful match to end a timeline subscription."
+        replies = QuitHandler.test('APPT QUIT foo bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Thank you'), reply)
+
+    def test_match_with_date(self):
+        "Use end date if given."
+        end = (now() + timedelta(hours=1)).strftime('%Y-%m-%d')
+        replies = QuitHandler.test('APPT QUIT foo bar %s' % end,
+                                    identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Thank you'), reply)
+        self.assertEqual(end, TimelineSubscription.objects.all()[0].end.strftime('%Y-%m-%d'))
+
+    def test_past_end_date(self):
+        "Use end date that is in the past."
+        yesterday = (now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        replies = QuitHandler.test('APPT QUIT foo bar %s' % yesterday,
+                                    identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('must be in the future' in reply)
+
+    def test_no_keyword_match(self):
+        "Keyword does not match any existing timelines."
+        self.timeline.delete()
+        replies = QuitHandler.test('APPT QUIT foo bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Sorry'))
+
+    def test_no_name_given(self):
+        "No name is given."
+        replies = QuitHandler.test('APPT QUIT foo', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Sorry'))
+
+    def test_invalid_date_format_given(self):
+        "Invalid date format."
+        replies = QuitHandler.test('APPT QUIT foo bar baz', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Sorry'))
+
+    def test_already_quit(self):
+        "Attempting to unsubscribe and already unsubcribed connection/name pair."
+        self.subscription.end = now()
+        self.subscription.save()
+        replies = QuitHandler.test('APPT QUIT foo bar', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Sorry'))
