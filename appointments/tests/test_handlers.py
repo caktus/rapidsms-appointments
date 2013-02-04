@@ -6,6 +6,7 @@ from .base import AppointmentDataTestCase, Notification, Appointment, now
 from ..handlers.confirm import ConfirmHandler
 from ..handlers.new import NewHandler
 from ..handlers.status import StatusHandler
+from ..handlers.move import MoveHandler
 
 
 class NewHandlerTestCase(AppointmentDataTestCase):
@@ -192,8 +193,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
 
     def test_future_appointment(self):
         "Matched user has no recent appointment."
-        tomorrow = timedelta(days=1)
-        self.appointment.date = self.appointment.date + tomorrow
+        self.appointment.date = self.appointment.date + timedelta(days=1)
         self.appointment.save()
         replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
@@ -213,6 +213,107 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
         self.subscription.end = now()
         self.subscription.save()
         replies = StatusHandler.test('APPT STATUS bar MISSED', identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('does not match an active subscription' in reply)
+
+
+class MoveHandlerTestCase(AppointmentDataTestCase):
+    "Keyword handler for rescheduling of appointments."
+
+    def setUp(self):
+        self.timeline = self.create_timeline(name='Test', slug='foo')
+        self.connection = self.create_connection()
+        self.subscription = self.create_timeline_subscription(
+            timeline=self.timeline, connection=self.connection, pin='bar')
+        MoveHandler._mock_backend = self.connection.backend
+        self.milestone = self.create_milestone(timeline=self.timeline)
+        self.appointment = self.create_appointment(milestone=self.milestone,
+                                                   date=now() + timedelta(hours=1))
+        self.tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d')
+
+    def test_help(self):
+        "Prefix and keyword should return the help."
+        replies = MoveHandler.test('APPT MOVE')
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('APPT MOVE <NAME/ID> <DATE>' in reply)
+
+    def test_appointment_reschedule(self):
+        "Successfully reschedule an upcoming appointment."
+        self.assertEqual(1, Appointment.objects.all().count())
+        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+                                   identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Thank you'))
+        self.assertEqual(2, Appointment.objects.all().count())
+        reschedule = Appointment.objects.all()[0]
+        self.assertEqual(reschedule.appointments.all()[0], self.appointment)
+
+    def test_appointment_reschedule_malformed_date(self):
+        "Ensure the date is properly formatted."
+        replies = MoveHandler.test('APPT MOVE bar tomorrow',
+                                   identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue(reply.startswith('Sorry, we cannot understand that date format'))
+
+    def test_appointment_reschedule_future_date(self):
+        "Ensure the date must be in the future."
+        yesterday = (now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        replies = MoveHandler.test('APPT MOVE bar %s' % yesterday,
+                                   identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertEqual(reply, 'Sorry, the reschedule date must be in the future.')
+
+    def test_no_future_appointment(self):
+        "Matched user has no future appointment."
+        self.appointment.delete()
+        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+                                     identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no future appointments' in reply)
+
+    def test_no_future_appointment_needing_update(self):
+        "Matched user has no future appointment that needs rescheduling."
+        reschedule = self.create_appointment(connection=self.connection,
+                                             milestone=self.milestone)
+        self.appointment.reschedule = reschedule
+        self.appointment.save()
+        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+                                     identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no future appointments' in reply)
+
+    def test_prior_appointment(self):
+        "Matched user has no future appointment."
+        self.appointment.date = self.appointment.date - timedelta(days=1)
+        self.appointment.save()
+        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+                                     identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('no future appointments' in reply)
+
+    def test_no_subscription(self):
+        "Name/ID does not match a subscription."
+        self.subscription.delete()
+        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+                                     identity=self.connection.identity)
+        self.assertEqual(len(replies), 1)
+        reply = replies[0]
+        self.assertTrue('does not match an active subscription' in reply)
+
+    def test_subscription_ended(self):
+        "Name/ID subscription has ended."
+        self.subscription.end = now()
+        self.subscription.save()
+        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+                                     identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
