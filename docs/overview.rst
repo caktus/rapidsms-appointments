@@ -84,3 +84,11 @@ Appointments can also be reschuduled via::
 
 where ``<DATE>`` denotes the new appointment date. A new reminder will be sent for
 the new appointment.
+
+A  user can be unsubscribed from a TimelineSubscription, and will no longer receive notifications for said subscription::
+
+    APPT QUIT BIRTH Joe <Date>
+
+where  ``<DATE>`` denotes the day on which the subscription should end. This field is optional
+and defaults to the date which the QUITE message was sent.
+
