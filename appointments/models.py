@@ -74,6 +74,9 @@ class Appointment(models.Model):
     def __unicode__(self):
         return 'Appointment for %s on %s' % (self.connection, self.date.isoformat())
 
+    class Meta:
+        ordering = ['-date']
+
 
 class Notification(models.Model):
     "Record of user notification for an appointment."
