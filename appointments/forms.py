@@ -61,10 +61,10 @@ class NewForm(HandlerForm):
 
     def clean_date(self):
         "Date must be today or in the future"
-        date = self.cleaned_date.get('date', None)
+        date = self.cleaned_data.get('date', None)
         if date and date < now():
             raise forms.ValidationError(_('Sorry, the supplied date %s must '
-                'be in the future: %s') % date)
+                'be in the future') % date)
 
     def clean_keyword(self):
         "Check if this keyword is associated with any timeline."
@@ -230,7 +230,8 @@ class MoveForm(HandlerForm):
         date = self.cleaned_data.get('date')
         # date should be in the future
         if date and date.date() < now().date():
-            raise forms.ValidationError(_('Sorry, the reschedule date must be in the future.'))
+            raise forms.ValidationError(_('Sorry, the reschedule date %s must '
+                'be in the future') % date)
         return date
 
     def clean_name(self):
@@ -310,11 +311,12 @@ class QuitForm(HandlerForm):
         return keyword
 
     def clean_date(self):
-        "Ensure the date to reschedule is in the future"
+        "Ensure the date to unsubscrive is in the future"
         date = self.cleaned_data.get('date')
         # date should be in the future
         if date and date.date() < now().date():
-            raise forms.ValidationError(_('Sorry, the reschedule date must be in the future.'))
+            raise forms.ValidationError(_('Sorry, the quit date %s must '
+                'be in the future') % date)
         return date
 
     def clean(self):

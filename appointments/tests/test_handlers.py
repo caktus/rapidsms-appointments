@@ -33,7 +33,8 @@ class NewHandlerTestCase(AppointmentDataTestCase):
 
     def test_match_with_date(self):
         "Use start date if given."
-        replies = NewHandler.test('APPT NEW foo bar 2012-01-01')
+        tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        replies = NewHandler.test('APPT NEW foo bar %s' % tomorrow)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue(reply.startswith('Thank you'), reply)
@@ -268,7 +269,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertEqual(reply, 'Sorry, the reschedule date must be in the future.')
+        self.assertTrue(reply.startswith('Sorry, the reschedule date'))
 
     def test_no_future_appointment(self):
         "Matched user has no future appointment."
