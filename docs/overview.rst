@@ -21,6 +21,13 @@ A timeline is the top-level structure for appointments. Each timeline has a set
 of keywords that the user can use to subscribe to the timeline.
 
 
+TimelineSubscription
+------------------------------------
+
+A TimelineSubscription attaches a User to a particular Timeline, and is the basis
+for generating Appointments based on the Timeline's Milestones.
+
+
 Milestone
 ____________________________________
 
