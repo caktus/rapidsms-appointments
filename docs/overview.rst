@@ -64,6 +64,8 @@ When a user has an upcoming appointment they will recieve on or more notificatio
 serve as a reminder. A user can confirm they recieved the nofication or not.
 
 
+.. _Workflow:
+
 Workflow
 ------------------------------------
 
