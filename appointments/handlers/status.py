@@ -24,21 +24,3 @@ class StatusHandler(AppointmentHandler):
             # Next token is the status
             result['status'] = tokens.pop(0)
         return result
-
-    def __handle(self, text):
-        "Update the User's recent applicable appointment with the supplied status."
-        parsed = self.parse_message(text)
-        form = StatusForm(data=parsed, connection=self.msg.connection)
-        if form.is_valid():
-            form.save()
-        else:
-            # Respond with error message
-            if 'name' in form.errors:
-                # Name is missing
-                self.respond(_('Sorry, you must include a name or id to set '
-                    'an appointment status.'))
-            else:
-                # Non-field error
-                self.respond(_('Sorry, we cannot understand that message. '
-                    'For additional help send: %(prefix)s STATUS') % {'prefix': self.prefix})
-        return True

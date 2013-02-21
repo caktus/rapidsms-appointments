@@ -28,29 +28,3 @@ class QuitHandler(AppointmentHandler):
                 # Remaining tokens should be a date string
                 result['date'] = ' '.join(tokens)
         return result
-
-    def __handle(self, text):
-        "Unsubscribe user with a given timeline based on the keyword match."
-        parsed = self.parse_message(text)
-        form = QuitForm(data=parsed, connection=self.msg.connection)
-        if form.is_valid():
-            result = {}
-        else:
-            # Respond with error message
-            if 'keyword' in form.errors:
-                # Invalid keyword
-                self.respond(_('Sorry, we could not find any appointments for '
-                    'the keyword: %(keyword)s') % parsed)
-            elif 'name' in form.errors:
-                # Name is missing
-                self.respond(_('Sorry, you must include a name or id for your '
-                    'appointments subscription.'))
-            elif 'date'in form.errors:
-                # Invalid date format
-                self.respond(_('Sorry, we cannot understand that date format. '
-                    'For the best results please use the ISO YYYY-MM-DD format.'))
-            else:
-                # Non-field error
-                self.respond(_('Sorry, we cannot understand that message. '
-                    'For additional help send: %(prefix)s QUIT') % {'prefix': self.prefix})
-        return True
