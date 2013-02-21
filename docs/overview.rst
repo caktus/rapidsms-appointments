@@ -7,12 +7,16 @@ scheduled relative to the user joining the timeline and they are sent a reminder
 just prior to the appointment.
 
 
-Data Model/Terminology
+Defining Appointments
 ------------------------------------
 
 Below is a description of the terminology used in this project and a high level
-overview of the underlying data model.
+overview of the underlying data model. There are two primary models that you need
+to manage in the admin for defining your set of appointments: :ref:`Timeline` and :ref:`Milestone`.
+The other models are noted here but are primarily managed through the application workflow.
 
+
+.. _Timeline:
 
 Timeline
 ____________________________________
@@ -21,12 +25,7 @@ A timeline is the top-level structure for appointments. Each timeline has a set
 of keywords that the user can use to subscribe to the timeline.
 
 
-TimelineSubscription
-------------------------------------
-
-A TimelineSubscription attaches a User to a particular Timeline, and is the basis
-for generating Appointments based on the Timeline's Milestones.
-
+.. _Milestone:
 
 Milestone
 ____________________________________
@@ -37,6 +36,17 @@ to track pregancies. The milestones would correspond to appointments throughout 
 pregancy (6 weeks, 12 weeks, 18 weeks, etc).
 
 
+.. _TimelineSubscription:
+
+TimelineSubscription
+____________________________________
+
+A TimelineSubscription attaches a User to a particular Timeline, and is the basis
+for generating Appointments based on the Timeline's Milestones.
+
+
+.. _Appointment:
+
 Appointment
 ____________________________________
 
@@ -44,6 +54,8 @@ An appointment is a record of a user who is subscribed to a timeline hitting a p
 milestone. Appointments might be made or missed by the user. They could also be
 rescheduled.
 
+
+.. _Notification:
 
 Notification
 ____________________________________
@@ -97,5 +109,5 @@ A  user can be unsubscribed from a TimelineSubscription, and will no longer rece
     APPT QUIT BIRTH Joe <Date>
 
 where  ``<DATE>`` denotes the day on which the subscription should end. This field is optional
-and defaults to the date which the QUITE message was sent.
+and defaults to the date which the QUIT message was sent.
 
