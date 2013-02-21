@@ -1,0 +1,3 @@
+[run]
+source = appointments
+omit = */tests*,*/migrations/*
