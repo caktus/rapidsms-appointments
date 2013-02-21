@@ -1,5 +1,6 @@
 from django.contrib import admin
-from appointments.models import Timeline, TimelineSubscription, Milestone, Appointment, Notification
+
+from .models import Timeline, TimelineSubscription, Milestone, Appointment, Notification
 
 
 class MilestoneAdmin(admin.ModelAdmin):
