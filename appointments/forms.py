@@ -59,13 +59,6 @@ class NewForm(HandlerForm):
             'For the best results please use the ISO YYYY-MM-DD format.')
     })
 
-    def clean_date(self):
-        "Date must be today or in the future"
-        date = self.cleaned_data.get('date', None)
-        if date and date < now():
-            raise forms.ValidationError(_('Sorry, the supplied date %s must '
-                'be in the future') % date)
-
     def clean_keyword(self):
         "Check if this keyword is associated with any timeline."
         keyword = self.cleaned_data.get('keyword', '')
@@ -309,15 +302,6 @@ class QuitForm(HandlerForm):
         else:
             self.cleaned_data['timeline'] = match
         return keyword
-
-    def clean_date(self):
-        "Ensure the date to unsubscrive is in the future"
-        date = self.cleaned_data.get('date')
-        # date should be in the future
-        if date and date.date() < now().date():
-            raise forms.ValidationError(_('Sorry, the quit date %s must '
-                'be in the future') % date)
-        return date
 
     def clean(self):
         "Check for previous subscription."

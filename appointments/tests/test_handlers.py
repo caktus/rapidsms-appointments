@@ -355,15 +355,6 @@ class QuitHandlerTestCase(AppointmentDataTestCase):
         self.assertTrue(reply.startswith('Thank you'), reply)
         self.assertEqual(end, TimelineSubscription.objects.all()[0].end.strftime('%Y-%m-%d'))
 
-    def test_past_end_date(self):
-        "Use end date that is in the past."
-        yesterday = (now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        replies = QuitHandler.test('APPT QUIT foo bar %s' % yesterday,
-                                    identity=self.connection.identity)
-        self.assertEqual(len(replies), 1)
-        reply = replies[0]
-        self.assertTrue('must be in the future' in reply)
-
     def test_no_keyword_match(self):
         "Keyword does not match any existing timelines."
         self.timeline.delete()
