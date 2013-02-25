@@ -118,15 +118,35 @@ class NewForm(HandlerForm):
 class ConfirmForm(HandlerForm):
     "Confirm an upcoming appointment."
 
+    keyword = forms.CharField()
     name = forms.CharField()
+
+    def clean_keyword(self):
+        "Check if this keyword is associated with any timeline."
+        keyword = self.cleaned_data.get('keyword', '')
+        match = None
+        if keyword:
+            # Query DB for valid keywords
+            for timeline in Timeline.objects.filter(slug__icontains=keyword):
+                if keyword.strip().lower() in timeline.keywords:
+                    match = timeline
+                    break
+        if match is None:
+            # Invalid keyword
+            raise forms.ValidationError(_('Sorry, we could not find any appointments for '
+                    'the keyword: %s') % keyword)
+        else:
+            self.cleaned_data['timeline'] = match
+        return keyword
 
     def clean_name(self):
         "Find last unconfirmed notification for upcoming appointment."
+        timeline = self.cleaned_data.get('timeline', None)
         name = self.cleaned_data.get('name', '')
         # name should be a pin for an active timeline subscription
         timelines = TimelineSubscription.objects.filter(
             Q(Q(end__gte=now()) | Q(end__isnull=True)),
-            connection=self.connection, pin=name
+            timeline=timeline, connection=self.connection, pin=name
         ).values_list('timeline', flat=True)
         if not timelines:
             # PIN doesn't match an active subscription for this connection

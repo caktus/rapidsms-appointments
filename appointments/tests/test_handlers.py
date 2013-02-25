@@ -92,11 +92,11 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         replies = ConfirmHandler.test('APPT CONFIRM')
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertTrue('APPT CONFIRM <NAME/ID>' in reply)
+        self.assertTrue('APPT CONFIRM <KEY> <NAME/ID>' in reply)
 
     def test_appointment_confirmed(self):
         "Successfully confirm an upcoming appointment."
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue(reply.startswith('Thank you'))
@@ -109,7 +109,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
     def test_no_upcoming_appointment(self):
         "Matched user has no upcoming appointment notifications."
         self.notification.delete()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no unconfirmed' in reply)
@@ -117,7 +117,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
     def test_already_confirmed(self):
         "Matched user has already confirmed the upcoming appointment."
         self.notification.confirm()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no unconfirmed' in reply)
@@ -125,7 +125,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
     def test_no_subscription(self):
         "Name/ID does not match a subscription."
         self.subscription.delete()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
@@ -134,7 +134,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         "Name/ID subscription has ended."
         self.subscription.end = now()
         self.subscription.save()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
