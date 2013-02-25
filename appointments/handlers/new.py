@@ -1,11 +1,9 @@
 from __future__ import unicode_literals
 
-from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
 from .base import AppointmentHandler
 from ..forms import NewForm
-from ..models import TimelineSubscription, now
 
 
 class NewHandler(AppointmentHandler):
