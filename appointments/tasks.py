@@ -28,8 +28,7 @@ def generate_appointments(days=14):
     end = (start + datetime.timedelta(days=days)).replace(hour=23,
                                                           minute=59,
                                                           second=59)
-    #Get all subscriptions that haven't ended
-    query = Q(end__lte=end) | Q(end__isnull=True)
+    query = Q(end__gte=start) | Q(end__isnull=True)
     subs = TimelineSubscription.objects.filter(query)
 
     for sub in subs:
