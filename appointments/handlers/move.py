@@ -11,16 +11,18 @@ class MoveHandler(AppointmentHandler):
 
     keyword = 'move'
     form = MoveForm
-    help_text = _('To reschedule the next appointment send: %(prefix)s %(keyword)s <NAME/ID> <DATE>')
+    help_text = _('To reschedule the next appointment send: %(prefix)s %(keyword)s <KEY> <NAME/ID> <DATE>')
     success_text = _('Thank you! The appointment has been rescheduled.')
 
     def parse_message(self, text):
         "Tokenize message text."
         result = {}
         tokens = text.strip().split()
-        # Next token is the name/id
-        result['name'] = tokens.pop(0)
+        result['keyword'] = tokens.pop(0)
         if tokens:
-            # Next token is the status
-            result['date'] = tokens.pop(0)
+            # Next token is the name/id
+            result['name'] = tokens.pop(0)
+            if tokens:
+                # Remaining tokens should be a date string
+                result['date'] = ' '.join(tokens)
         return result

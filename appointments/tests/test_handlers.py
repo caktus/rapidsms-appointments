@@ -240,12 +240,12 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
         replies = MoveHandler.test('APPT MOVE')
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertTrue('APPT MOVE <NAME/ID> <DATE>' in reply)
+        self.assertTrue('APPT MOVE <KEY> <NAME/ID> <DATE>' in reply)
 
     def test_appointment_reschedule(self):
         "Successfully reschedule an upcoming appointment."
         self.assertEqual(1, Appointment.objects.all().count())
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -256,7 +256,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
 
     def test_appointment_reschedule_malformed_date(self):
         "Ensure the date is properly formatted."
-        replies = MoveHandler.test('APPT MOVE bar tomorrow',
+        replies = MoveHandler.test('APPT MOVE foo bar tomorrow',
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -265,7 +265,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
     def test_appointment_reschedule_future_date(self):
         "Ensure the date must be in the future."
         yesterday = (now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        replies = MoveHandler.test('APPT MOVE bar %s' % yesterday,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % yesterday,
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -274,7 +274,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
     def test_no_future_appointment(self):
         "Matched user has no future appointment."
         self.appointment.delete()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -286,7 +286,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
                                              milestone=self.milestone)
         self.appointment.reschedule = reschedule
         self.appointment.save()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -296,7 +296,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
         "Matched user has no future appointment."
         self.appointment.date = self.appointment.date - timedelta(days=1)
         self.appointment.save()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -305,7 +305,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
     def test_no_subscription(self):
         "Name/ID does not match a subscription."
         self.subscription.delete()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -315,7 +315,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
         "Name/ID subscription has ended."
         self.subscription.end = now()
         self.subscription.save()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]

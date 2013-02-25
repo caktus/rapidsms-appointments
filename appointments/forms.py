@@ -232,11 +232,12 @@ class MoveForm(HandlerForm):
 
     def clean_name(self):
         "Find the next appointment for the patient."
+        timeline = self.cleaned_data.get('timeline', None)
         name = self.cleaned_data.get('name', '')
         # name should be a pin for an active timeline subscription
         timelines = TimelineSubscription.objects.filter(
             Q(Q(end__gte=now()) | Q(end__isnull=True)),
-            connection=self.connection, pin=name
+            timeline=timeline, connection=self.connection, pin=name
         ).values_list('timeline', flat=True)
         if not timelines:
             # PIN doesn't match an active subscription for this connection
