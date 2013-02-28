@@ -88,7 +88,7 @@ One week later the user will have hit the first milestone and they will be sent 
 reminder over SMS. Once they have recieved they can confirm they read it by sending
 back::
 
-    APPT CONFIRM Joe
+    APPT CONFIRM BIRTH Joe
 
 Again ``Joe`` might be replaced with another identifier, whichever was used for the
 original subscription.
@@ -96,12 +96,12 @@ original subscription.
 Once the appointment has passed the user can mark that the appointment was made
 or missed::
 
-    APPT STATUS Joe SAW
-    APPT STATUS Joe MISSED
+    APPT STATUS BIRTH Joe SAW
+    APPT STATUS BIRTH Joe MISSED
 
 Appointments can also be reschuduled via::
 
-    APPT MOVE Joe <Date>
+    APPT MOVE BIRTH Joe <Date>
 
 where ``<DATE>`` denotes the new appointment date. A new reminder will be sent for
 the new appointment.

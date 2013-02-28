@@ -11,9 +11,15 @@ class ConfirmHandler(AppointmentHandler):
 
     keyword = 'confirm'
     form = ConfirmForm
-    help_text = _('To confirm an upcoming appointment send: %(prefix)s %(keyword)s <NAME/ID>')
+    help_text = _('To confirm an upcoming appointment send: %(prefix)s %(keyword)s <KEY> <NAME/ID>')
     success_text = _('Thank you! Your appointment has been confirmed.')
 
     def parse_message(self, text):
         "Tokenize message text."
-        return {'name': text.strip()}
+        result = {}
+        tokens = text.strip().split()
+        result['keyword'] = tokens.pop(0)
+        if tokens:
+            # Next token is the name/id
+            result['name'] = tokens.pop(0)
+        return result

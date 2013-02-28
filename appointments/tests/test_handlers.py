@@ -92,11 +92,11 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         replies = ConfirmHandler.test('APPT CONFIRM')
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertTrue('APPT CONFIRM <NAME/ID>' in reply)
+        self.assertTrue('APPT CONFIRM <KEY> <NAME/ID>' in reply)
 
     def test_appointment_confirmed(self):
         "Successfully confirm an upcoming appointment."
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue(reply.startswith('Thank you'))
@@ -109,7 +109,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
     def test_no_upcoming_appointment(self):
         "Matched user has no upcoming appointment notifications."
         self.notification.delete()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no unconfirmed' in reply)
@@ -117,7 +117,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
     def test_already_confirmed(self):
         "Matched user has already confirmed the upcoming appointment."
         self.notification.confirm()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no unconfirmed' in reply)
@@ -125,7 +125,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
     def test_no_subscription(self):
         "Name/ID does not match a subscription."
         self.subscription.delete()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
@@ -134,7 +134,7 @@ class ConfirmHandlerTestCase(AppointmentDataTestCase):
         "Name/ID subscription has ended."
         self.subscription.end = now()
         self.subscription.save()
-        replies = ConfirmHandler.test('APPT CONFIRM bar', identity=self.connection.identity)
+        replies = ConfirmHandler.test('APPT CONFIRM foo bar', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
@@ -157,13 +157,13 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
         replies = StatusHandler.test('APPT STATUS')
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertTrue('APPT STATUS <NAME/ID> <SAW|MISSED>' in reply)
+        self.assertTrue('APPT STATUS <KEY> <NAME/ID> <SAW|MISSED>' in reply)
 
     def test_appointment_status_updated(self):
         "Successfully update a recent appointment."
         for status in Appointment.STATUS_CHOICES[1:]:
             appt = self.create_appointment(milestone=self.milestone)
-            replies = StatusHandler.test('APPT STATUS bar %s' % status[1].upper(),
+            replies = StatusHandler.test('APPT STATUS foo bar %s' % status[1].upper(),
                                          identity=self.connection.identity)
             self.assertEqual(len(replies), 1)
             reply = replies[0]
@@ -172,7 +172,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
 
     def test_appointment_status_invalid_update(self):
         "Do not update if supplied status text is not in STATUS_CHOICES."
-        replies = StatusHandler.test('APPT STATUS bar FOO', identity=self.connection.identity)
+        replies = StatusHandler.test('APPT STATUS foo bar FOO', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue(reply.startswith('Sorry, the status update must be in'))
@@ -180,7 +180,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
     def test_no_recent_appointment(self):
         "Matched user has no recent appointment."
         self.appointment.delete()
-        replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
+        replies = StatusHandler.test('APPT STATUS foo bar SAW', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no recent appointments' in reply)
@@ -189,7 +189,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
         "Matched user has no recent appointment that needs updating."
         self.appointment.status = Appointment.STATUS_MISSED
         self.appointment.save()
-        replies = StatusHandler.test('APPT STATUS bar MISSED', identity=self.connection.identity)
+        replies = StatusHandler.test('APPT STATUS foo bar MISSED', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no recent appointments' in reply)
@@ -198,7 +198,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
         "Matched user has no recent appointment."
         self.appointment.date = self.appointment.date + timedelta(days=1)
         self.appointment.save()
-        replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
+        replies = StatusHandler.test('APPT STATUS foo bar SAW', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('no recent appointments' in reply)
@@ -206,7 +206,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
     def test_no_subscription(self):
         "Name/ID does not match a subscription."
         self.subscription.delete()
-        replies = StatusHandler.test('APPT STATUS bar SAW', identity=self.connection.identity)
+        replies = StatusHandler.test('APPT STATUS foo bar SAW', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
@@ -215,7 +215,7 @@ class StatusHandlerTestCase(AppointmentDataTestCase):
         "Name/ID subscription has ended."
         self.subscription.end = now()
         self.subscription.save()
-        replies = StatusHandler.test('APPT STATUS bar MISSED', identity=self.connection.identity)
+        replies = StatusHandler.test('APPT STATUS foo bar MISSED', identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
         self.assertTrue('does not match an active subscription' in reply)
@@ -240,12 +240,12 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
         replies = MoveHandler.test('APPT MOVE')
         self.assertEqual(len(replies), 1)
         reply = replies[0]
-        self.assertTrue('APPT MOVE <NAME/ID> <DATE>' in reply)
+        self.assertTrue('APPT MOVE <KEY> <NAME/ID> <DATE>' in reply)
 
     def test_appointment_reschedule(self):
         "Successfully reschedule an upcoming appointment."
         self.assertEqual(1, Appointment.objects.all().count())
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -256,7 +256,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
 
     def test_appointment_reschedule_malformed_date(self):
         "Ensure the date is properly formatted."
-        replies = MoveHandler.test('APPT MOVE bar tomorrow',
+        replies = MoveHandler.test('APPT MOVE foo bar tomorrow',
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -265,7 +265,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
     def test_appointment_reschedule_future_date(self):
         "Ensure the date must be in the future."
         yesterday = (now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        replies = MoveHandler.test('APPT MOVE bar %s' % yesterday,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % yesterday,
                                    identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -274,7 +274,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
     def test_no_future_appointment(self):
         "Matched user has no future appointment."
         self.appointment.delete()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -286,7 +286,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
                                              milestone=self.milestone)
         self.appointment.reschedule = reschedule
         self.appointment.save()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -296,7 +296,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
         "Matched user has no future appointment."
         self.appointment.date = self.appointment.date - timedelta(days=1)
         self.appointment.save()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -305,7 +305,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
     def test_no_subscription(self):
         "Name/ID does not match a subscription."
         self.subscription.delete()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
@@ -315,7 +315,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
         "Name/ID subscription has ended."
         self.subscription.end = now()
         self.subscription.save()
-        replies = MoveHandler.test('APPT MOVE bar %s' % self.tomorrow,
+        replies = MoveHandler.test('APPT MOVE foo bar %s' % self.tomorrow,
                                      identity=self.connection.identity)
         self.assertEqual(len(replies), 1)
         reply = replies[0]
