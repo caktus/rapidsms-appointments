@@ -28,6 +28,9 @@ and `pip <http://www.pip-installer.org/>`_ is the recommended method for install
 Once installed you should add ``appointments`` to your ``INSTALLED_APPS`` setting::
 
     INSTALLED_APPS = (
+        # Required apps
+        'rapidsms',
+        'rapidsms.contrib.handlers',
         # Other apps go here
         'appointments',
     )
