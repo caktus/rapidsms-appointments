@@ -18,7 +18,9 @@ class AppointmentHandler(KeywordHandler):
     def _keyword(cls):
         if hasattr(cls, "keyword"):
             pattern = r"^\s*(?:%s)\s*(?:%s)(?:[\s,;:]+(.+))?$" % (cls.prefix, cls.keyword)
-            return re.compile(pattern, re.IGNORECASE)
+        else:
+            pattern = r"^\s*(?:%s)\s*?$" % cls.prefix
+        return re.compile(pattern, re.IGNORECASE)
 
     def handle(self, text):
         "Parse text, validate data, and respond."
