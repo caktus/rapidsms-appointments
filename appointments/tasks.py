@@ -2,7 +2,7 @@ import datetime
 
 from celery import task
 
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils.translation import ugettext_lazy as _
 try:
     from django.utils.timezone import now
@@ -27,8 +27,7 @@ def generate_appointments(days=14):
     start = datetime.date.today()
     end = start + datetime.timedelta(days=days)
 
-    query = Q(end__gte=start) | Q(end__isnull=True)
-    subs = TimelineSubscription.objects.filter(query)
+    subs = TimelineSubscription.objects.filter(Q(end__gte=now()) | Q(end__isnull=True))
 
     for sub in subs:
         for milestone in sub.timeline.milestones.all():
@@ -52,11 +51,14 @@ def send_appointment_notifications(days=7):
     """
     start = datetime.date.today()
     end = start + datetime.timedelta(days=days)
-
-    # get all subscriptions that haven't ended
-    query = Q(date__gte=start) & Q(date__lte=end)
     blacklist = [Notification.STATUS_SENT, Notification.STATUS_CONFIRMED, Notification.STATUS_MANUAL]
-    appts = Appointment.objects.filter(query).exclude(notifications__status__in=blacklist)
+    appts = Appointment.objects.filter(
+        # Join subscriptions that haven't ended
+        Q(Q(connection__timelines__end__gte=now()) | Q(connection__timelines__end__isnull=True)),
+        connection__timelines__timeline=F('milestone__timeline'),
+        # Filter appointments in range
+        date__range=(start, end),
+    ).exclude(notifications__status__in=blacklist)
     for appt in appts:
         msg = APPT_REMINDER % {'date': appt.date}
         send(msg, appt.connection)

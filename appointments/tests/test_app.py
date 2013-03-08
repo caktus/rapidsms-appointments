@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import datetime
 
 from .base import AppointmentDataTestCase
-from ..models import Appointment
+from ..models import Appointment, Notification
 from ..tasks import generate_appointments, send_appointment_notifications
 
 
@@ -83,4 +83,19 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         generate_appointments()
         # No appointments should be generated
         appointments = Appointment.objects.filter(connection=self.connection)
-        self.assertEqual(1, appointments.count())
+        self.assertEqual(0, appointments.count())
+
+    def test_quit_reminders(self):
+        "Don't send reminders for unsubscribed users."
+        msg = self.receive('APPT NEW FOO 123', self.connection)
+        reply = self.outbound.pop()
+        self.assertTrue(reply.text.startswith('Thank you'))
+        generate_appointments()
+        msg = self.receive('APPT QUIT FOO 123', self.connection)
+        reply = self.outbound.pop()
+        self.assertTrue(reply.text.startswith('Thank you'))
+        send_appointment_notifications()
+        self.assertEqual(0, len(self.outbound), self.outbound)
+        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        notifications = Notification.objects.filter(appointment=appointment)
+        self.assertEqual(0, notifications.count())
