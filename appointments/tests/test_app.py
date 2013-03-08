@@ -71,3 +71,16 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         self.assertTrue(reply.text.startswith('Thank you'))
         appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
         self.assertEqual(Appointment.STATUS_MISSED, appointment.status)
+
+    def test_join_then_quit(self):
+        "Join a timeline then quit."
+        msg = self.receive('APPT NEW FOO 123', self.connection)
+        reply = self.outbound.pop()
+        self.assertTrue(reply.text.startswith('Thank you'))
+        msg = self.receive('APPT QUIT FOO 123', self.connection)
+        reply = self.outbound.pop()
+        self.assertTrue(reply.text.startswith('Thank you'))
+        generate_appointments()
+        # No appointments should be generated
+        appointments = Appointment.objects.filter(connection=self.connection)
+        self.assertEqual(1, appointments.count())
