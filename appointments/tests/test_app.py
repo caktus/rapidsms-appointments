@@ -39,3 +39,35 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         self.assertTrue(reply.text.startswith('Thank you'))
         appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
         self.assertTrue(appointment.confirmed)
+
+    def test_made_appointment(self):
+        "Mark an appointment as seen."
+        yesterday = datetime.date.today() - datetime.timedelta(days=self.milestone.offset)
+        # Joined yesterday so appointment would be today
+        subscription = self.create_timeline_subscription(
+            connection=self.connection, timeline=self.timeline, start=yesterday)
+        generate_appointments()
+        send_appointment_notifications()
+        reminder = self.outbound.pop()
+        self.assertTrue(reminder.text.startswith('This is a reminder'))
+        msg = self.receive('APPT STATUS FOO {0} SAW'.format(subscription.pin), self.connection)
+        reply = self.outbound.pop()
+        self.assertTrue(reply.text.startswith('Thank you'))
+        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        self.assertEqual(Appointment.STATUS_SAW, appointment.status)
+
+    def test_missed_appointment(self):
+        "Mark an appointment as missed."
+        yesterday = datetime.date.today() - datetime.timedelta(days=self.milestone.offset)
+        # Joined yesterday so appointment would be today
+        subscription = self.create_timeline_subscription(
+            connection=self.connection, timeline=self.timeline, start=yesterday)
+        generate_appointments()
+        send_appointment_notifications()
+        reminder = self.outbound.pop()
+        self.assertTrue(reminder.text.startswith('This is a reminder'))
+        msg = self.receive('APPT STATUS FOO {0} MISSED'.format(subscription.pin), self.connection)
+        reply = self.outbound.pop()
+        self.assertTrue(reply.text.startswith('Thank you'))
+        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        self.assertEqual(Appointment.STATUS_MISSED, appointment.status)

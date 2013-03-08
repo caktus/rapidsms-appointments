@@ -24,23 +24,21 @@ def generate_appointments(days=14):
     Arguments:
     days: The number of upcoming days to create Appointments for
     """
-    start = now()
-    end = (start + datetime.timedelta(days=days)).replace(hour=23,
-                                                          minute=59,
-                                                          second=59)
+    start = datetime.date.today()
+    end = start + datetime.timedelta(days=days)
+
     query = Q(end__gte=start) | Q(end__isnull=True)
     subs = TimelineSubscription.objects.filter(query)
 
     for sub in subs:
         for milestone in sub.timeline.milestones.all():
-            offset = milestone.offset
-            milestone_date = sub.start + datetime.timedelta(days=offset)
+            milestone_date = sub.start.date() + datetime.timedelta(days=milestone.offset)
             #Create appointment(s) for this subscription within the task window
             if start <= milestone_date <= end:
                 appt, created = Appointment.objects.get_or_create(
                                                     connection=sub.connection,
                                                     milestone=milestone,
-                                                    date=milestone_date.date()
+                                                    date=milestone_date
                                                     )
 
 
@@ -52,10 +50,9 @@ def send_appointment_notifications(days=7):
     Arguments:
     days: The number of upcoming days to filter upcoming Appointments
     """
-    start = now()
-    end = (start + datetime.timedelta(days=days)).replace(hour=23,
-                                                          minute=59,
-                                                          second=59)
+    start = datetime.date.today()
+    end = start + datetime.timedelta(days=days)
+
     # get all subscriptions that haven't ended
     query = Q(date__gte=start) & Q(date__lte=end)
     blacklist = [Notification.STATUS_SENT, Notification.STATUS_CONFIRMED, Notification.STATUS_MANUAL]
