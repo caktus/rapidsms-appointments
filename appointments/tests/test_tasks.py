@@ -64,7 +64,14 @@ class SendAppointmentNotificationsTestCase(AppointmentDataTestCase):
     def setUp(self):
         self.backend = self.create_backend(name='mockbackend')
         self.cnx = self.create_connection(backend=self.backend)
+        self.timeline = self.create_timeline()
+        self.create_timeline_subscription(connection=self.cnx, timeline=self.timeline)
         self.appointment = self.create_appointment(connection=self.cnx)
+
+    def create_milestone(self, **kwargs):
+        "Ensure milestones are created on the default timeline."
+        kwargs['timeline'] = self.timeline
+        return super(SendAppointmentNotificationsTestCase, self).create_milestone(**kwargs)
 
     def test_send_notifications(self):
         "Test the default task"
@@ -95,6 +102,7 @@ class SendAppointmentNotificationsTestCase(AppointmentDataTestCase):
     def test_send_notifications_multiple_users(self):
         "The task should generate notifications for all applicable appointments"
         self.cnx2 = self.create_connection(identity='johndoe', backend=self.backend)
+        self.create_timeline_subscription(connection=self.cnx2, timeline=self.timeline)
         self.create_appointment(connection=self.cnx2)
         self.assertEqual(0, Notification.objects.all().count())
         send_appointment_notifications()

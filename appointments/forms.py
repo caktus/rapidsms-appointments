@@ -139,7 +139,7 @@ class ConfirmForm(HandlerForm):
                 confirmed__isnull=True,
                 appointment__confirmed__isnull=True,
                 appointment__reschedule__isnull=True,
-                appointment__date__lte=now(),
+                appointment__date__gte=now(),
                 appointment__milestone__timeline__in=timelines
             ).order_by('-sent')[0]
         except IndexError:
