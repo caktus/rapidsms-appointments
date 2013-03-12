@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.com
+
+[rapidsms-appointments.djangopo]
+file_filter = appointments/locale/<lang>/LC_MESSAGES/django.po
+source_file = appointments/locale/en/LC_MESSAGES/django.po
+source_lang = en
+type = PO

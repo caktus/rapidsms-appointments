@@ -26,6 +26,15 @@ Documentation on using rapidsms-appointments is available on
 `Read The Docs <http://readthedocs.org/docs/rapidsms-appointments/>`_.
 
 
+Translations
+-----------------------------------
+
+The translations for rapidsms-appointment are managed on our
+`Transifex project <https://www.transifex.com/projects/p/rapidsms-appointments/>`_.
+If you are interested in translating rapidsms-appointments into your native language
+you can join the project and add your language.
+
+
 Running the Tests
 ------------------------------------
 
