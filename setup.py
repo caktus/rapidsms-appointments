@@ -37,6 +37,6 @@ setup(
     test_suite="runtests.runtests",
     zip_safe=False,
     install_requires=[
-        'Celery>=3.0.13',
+        'Celery>=3.0',
     ]
 )
