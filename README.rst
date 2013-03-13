@@ -7,6 +7,11 @@ are send to the patient or staff to remind them of the appointment. Appointments
 can be confirmed or rescheduled by patient or staff. It also tracks the history of confirmed
 notifications and missed/made appointments.
 
+.. image::
+    https://secure.travis-ci.org/caktus/rapidsms-appointments.png?branch=master
+    :alt: Build Status
+        :target: https://secure.travis-ci.org/caktus/rapidsms-appointments
+
 
 Dependencies
 -----------------------------------
