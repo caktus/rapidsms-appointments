@@ -265,7 +265,7 @@ class MoveForm(HandlerForm):
         params['date'] = self.cleaned_data['date']
         params.pop('id')
         params['milestone'] = appointment.milestone
-        params['connection'] = appointment.connection
+        params['subscription'] = appointment.subscription
         reschedule = Appointment.objects.create(**params)
         appointment.reschedule = reschedule
         appointment.save()

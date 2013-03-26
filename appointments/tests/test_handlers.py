@@ -282,7 +282,7 @@ class MoveHandlerTestCase(AppointmentDataTestCase):
 
     def test_no_future_appointment_needing_update(self):
         "Matched user has no future appointment that needs rescheduling."
-        reschedule = self.create_appointment(connection=self.connection,
+        reschedule = self.create_appointment(subscription=self.subscription,
                                              milestone=self.milestone)
         self.appointment.reschedule = reschedule
         self.appointment.save()

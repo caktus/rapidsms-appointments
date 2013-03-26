@@ -38,7 +38,7 @@ def generate_appointments(days=14):
             #Create appointment(s) for this subscription within the task window
             if start <= milestone_date <= end:
                 appt, created = Appointment.objects.get_or_create(
-                                                    connection=sub.connection,
+                                                    subscription=sub,
                                                     milestone=milestone,
                                                     date=milestone_date.date()
                                                     )
@@ -62,7 +62,7 @@ def send_appointment_notifications(days=7):
     appts = Appointment.objects.filter(query).exclude(notifications__status__in=blacklist)
     for appt in appts:
         msg = APPT_REMINDER % {'date': appt.date}
-        send(msg, appt.connection)
+        send(msg, appt.subscription.connection)
         Notification.objects.create(appointment=appt,
                                     status=Notification.STATUS_SENT,
                                     sent=now(),

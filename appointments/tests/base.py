@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import random
 import string
 
+from django.contrib.auth.models import User
+
 from rapidsms.models import Connection, Backend
 from rapidsms.tests.harness import RapidTest
 
@@ -74,8 +76,8 @@ class AppointmentDataTestCase(RapidTest):
         defaults.update(kwargs)
         if 'milestone' not in defaults:
             defaults['milestone'] = self.create_milestone()
-        if 'connection' not in defaults:
-            defaults['connection'] = self.create_connection()
+        if 'subscription' not in defaults:
+            defaults['subscription'] = self.create_timeline_subscription()
         return Appointment.objects.create(**defaults)
 
     def create_notification(self, **kwargs):
@@ -87,3 +89,17 @@ class AppointmentDataTestCase(RapidTest):
         if 'appointment' not in defaults:
             defaults['appointment'] = self.create_appointment()
         return Notification.objects.create(**defaults)
+
+    def create_user(self, username=None, password=None, email=None,
+            user_permissions=None, groups=None, **kwargs):
+        username = username or self.random_string(25)
+        password = password or self.random_string(25)
+        email = email or '{0}@example.com'.format(self.random_string(25))
+        user = User.objects.create_user(username, email, password)
+        if user_permissions:
+            user.user_permissions = user_permissions
+        if groups:
+            user.groups = groups
+        if kwargs:
+            User.objects.filter(pk=user.pk).update(**kwargs)
+        return User.objects.get(pk=user.pk)

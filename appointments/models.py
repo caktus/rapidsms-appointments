@@ -76,6 +76,10 @@ class Appointment(models.Model):
 
     class Meta:
         ordering = ['-date']
+        permissions = (
+            ('view_appointment', 'Can View Appointments'),
+        )
+        verbose_name = 'appointment view'
 
 
 class Notification(models.Model):
