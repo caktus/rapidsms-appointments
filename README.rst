@@ -7,6 +7,11 @@ are send to the patient or staff to remind them of the appointment. Appointments
 can be confirmed or rescheduled by patient or staff. It also tracks the history of confirmed
 notifications and missed/made appointments.
 
+.. image::
+    https://secure.travis-ci.org/caktus/rapidsms-appointments.png?branch=master
+    :alt: Build Status
+        :target: https://secure.travis-ci.org/caktus/rapidsms-appointments
+
 
 Dependencies
 -----------------------------------
@@ -24,6 +29,15 @@ Documentation
 
 Documentation on using rapidsms-appointments is available on
 `Read The Docs <http://readthedocs.org/docs/rapidsms-appointments/>`_.
+
+
+Translations
+-----------------------------------
+
+The translations for rapidsms-appointment are managed on our
+`Transifex project <https://www.transifex.com/projects/p/rapidsms-appointments/>`_.
+If you are interested in translating rapidsms-appointments into your native language
+you can join the project and add your language.
 
 
 Running the Tests

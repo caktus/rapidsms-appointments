@@ -73,9 +73,29 @@ Below describes a sample workflow for creating the timeline and milestone data
 and the using the SMS interactions. This example will track a set of appointments
 for a new born baby.
 
-First a site admin will create a timeline with a keyword 'birth' and a name 'New Birth'.
-Associated with that timeline they will create milestones at 1 week (7 days), 2 weeks (14 days),
+First a site admin will create a timeline with keyword 'birth|bir|postnatal|pnc'.
+This timeline allows for the keyword 'birth' along with the alias keywords
+'bir', 'postnatal' and 'pnc'. Each of the actions can use any of these keywords to
+reference this timeline. For our example we'll subscribe users with the 'birth' keyword
+and switch to the 'pnc' shorthand for future interactions. Associated with that timeline
+they will create milestones at 1 week (7 days), 2 weeks (14 days),
 1 month (30 days), 3 months (90 days), 6 months (180 days), and 1 year (365 days).
+
+.. code-block:: python
+
+    from appointments.models import Timeline, Milestone
+
+    # Creating the necessary timeline/milestone data. This could also be done in the admin
+
+    # Create the timeline
+    timeline = Timeline.objects.create(
+        name='New Birth/Postnatal Care Visits', slug='birth|bir|postnatal|pnc'
+    )
+    # Create each milestone in the timeline
+    for offset in [7, 14, 30, 90, 180, 365]:
+        milestone = Milestone.objects.create(
+            name='{0} day appointment'.format(offset), timeline=timeline, offset=offset
+        )
 
 To subscribe to these notifications a user will send in an SMS with the message::
 
@@ -88,7 +108,7 @@ One week later the user will have hit the first milestone and they will be sent 
 reminder over SMS. Once they have recieved they can confirm they read it by sending
 back::
 
-    APPT CONFIRM Joe
+    APPT CONFIRM PNC Joe
 
 Again ``Joe`` might be replaced with another identifier, whichever was used for the
 original subscription.
@@ -96,19 +116,19 @@ original subscription.
 Once the appointment has passed the user can mark that the appointment was made
 or missed::
 
-    APPT STATUS Joe SAW
-    APPT STATUS Joe MISSED
+    APPT STATUS PNC Joe SAW
+    APPT STATUS PNC Joe MISSED
 
 Appointments can also be reschuduled via::
 
-    APPT MOVE Joe <Date>
+    APPT MOVE PNC Joe <Date>
 
 where ``<DATE>`` denotes the new appointment date. A new reminder will be sent for
 the new appointment.
 
 A user can be unsubscribed from a TimelineSubscription, and will no longer receive notifications for said subscription::
 
-    APPT QUIT BIRTH Joe <Date>
+    APPT QUIT PNC Joe <Date>
 
 where  ``<DATE>`` denotes the day on which the subscription should end. This field is optional
 and defaults to the date which the QUIT message was sent.

@@ -2,7 +2,7 @@ import datetime
 
 from celery import task
 
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils.translation import ugettext_lazy as _
 try:
     from django.utils.timezone import now
@@ -24,23 +24,20 @@ def generate_appointments(days=14):
     Arguments:
     days: The number of upcoming days to create Appointments for
     """
-    start = now()
-    end = (start + datetime.timedelta(days=days)).replace(hour=23,
-                                                          minute=59,
-                                                          second=59)
-    query = Q(end__gte=start) | Q(end__isnull=True)
-    subs = TimelineSubscription.objects.filter(query)
+    start = datetime.date.today()
+    end = start + datetime.timedelta(days=days)
+
+    subs = TimelineSubscription.objects.filter(Q(end__gte=now()) | Q(end__isnull=True))
 
     for sub in subs:
         for milestone in sub.timeline.milestones.all():
-            offset = milestone.offset
-            milestone_date = sub.start + datetime.timedelta(days=offset)
+            milestone_date = sub.start.date() + datetime.timedelta(days=milestone.offset)
             #Create appointment(s) for this subscription within the task window
             if start <= milestone_date <= end:
                 appt, created = Appointment.objects.get_or_create(
                                                     subscription=sub,
                                                     milestone=milestone,
-                                                    date=milestone_date.date()
+                                                    date=milestone_date
                                                     )
 
 
@@ -52,14 +49,16 @@ def send_appointment_notifications(days=7):
     Arguments:
     days: The number of upcoming days to filter upcoming Appointments
     """
-    start = now()
-    end = (start + datetime.timedelta(days=days)).replace(hour=23,
-                                                          minute=59,
-                                                          second=59)
-    # get all subscriptions that haven't ended
-    query = Q(date__gte=start) & Q(date__lte=end)
+    start = datetime.date.today()
+    end = start + datetime.timedelta(days=days)
     blacklist = [Notification.STATUS_SENT, Notification.STATUS_CONFIRMED, Notification.STATUS_MANUAL]
-    appts = Appointment.objects.filter(query).exclude(notifications__status__in=blacklist)
+    appts = Appointment.objects.filter(
+        # Join subscriptions that haven't ended
+        Q(Q(subscription__connection__timelines__end__gte=now()) | Q(subscription__connection__timelines__end__isnull=True)),
+        subscription__connection__timelines__timeline=F('milestone__timeline'),
+        # Filter appointments in range
+        date__range=(start, end),
+    ).exclude(notifications__status__in=blacklist)
     for appt in appts:
         msg = APPT_REMINDER % {'date': appt.date}
         send(msg, appt.subscription.connection)

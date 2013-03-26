@@ -22,10 +22,30 @@ class PlainErrorList(ErrorList):
 class HandlerForm(forms.Form):
     "Base form class for validating SMS handler message data."
 
+    keyword = forms.CharField()
+
     def __init__(self, *args, **kwargs):
         self.connection = kwargs.pop('connection', None)
         kwargs['error_class'] = PlainErrorList
         super(HandlerForm, self).__init__(*args, **kwargs)
+
+    def clean_keyword(self):
+        "Check if this keyword is associated with any timeline."
+        keyword = self.cleaned_data.get('keyword', '')
+        match = None
+        if keyword:
+            # Query DB for valid keywords
+            for timeline in Timeline.objects.filter(slug__icontains=keyword):
+                if keyword.strip().lower() in timeline.keywords:
+                    match = timeline
+                    break
+        if match is None:
+            # Invalid keyword
+            raise forms.ValidationError(_('Sorry, we could not find any appointments for '
+                    'the keyword: %s') % keyword)
+        else:
+            self.cleaned_data['timeline'] = match
+        return keyword
 
     def error(self):
         "Condense form errors to single error message."
@@ -49,7 +69,6 @@ class HandlerForm(forms.Form):
 class NewForm(HandlerForm):
     "Register user for new timeline."
 
-    keyword = forms.CharField()
     name = forms.CharField(error_messages={
         'required': _('Sorry, you must include a name or id for your '
             'appointments subscription.')
@@ -58,24 +77,6 @@ class NewForm(HandlerForm):
         'invalid': _('Sorry, we cannot understand that date format. '
             'For the best results please use the ISO YYYY-MM-DD format.')
     })
-
-    def clean_keyword(self):
-        "Check if this keyword is associated with any timeline."
-        keyword = self.cleaned_data.get('keyword', '')
-        match = None
-        if keyword:
-            # Query DB for valid keywords
-            for timeline in Timeline.objects.filter(slug__icontains=keyword):
-                if keyword.strip().lower() in timeline.keywords:
-                    match = timeline
-                    break
-        if match is None:
-            # Invalid keyword
-            raise forms.ValidationError(_('Sorry, we could not find any appointments for '
-                    'the keyword: %s') % keyword)
-        else:
-            self.cleaned_data['timeline'] = match
-        return keyword
 
     def clean(self):
         "Check for previous subscription."
@@ -122,11 +123,12 @@ class ConfirmForm(HandlerForm):
 
     def clean_name(self):
         "Find last unconfirmed notification for upcoming appointment."
+        timeline = self.cleaned_data.get('timeline', None)
         name = self.cleaned_data.get('name', '')
         # name should be a pin for an active timeline subscription
         timelines = TimelineSubscription.objects.filter(
             Q(Q(end__gte=now()) | Q(end__isnull=True)),
-            connection=self.connection, pin=name
+            timeline=timeline, connection=self.connection, pin=name
         ).values_list('timeline', flat=True)
         if not timelines:
             # PIN doesn't match an active subscription for this connection
@@ -137,7 +139,7 @@ class ConfirmForm(HandlerForm):
                 confirmed__isnull=True,
                 appointment__confirmed__isnull=True,
                 appointment__reschedule__isnull=True,
-                appointment__date__lte=now(),
+                appointment__date__gte=now(),
                 appointment__milestone__timeline__in=timelines
             ).order_by('-sent')[0]
         except IndexError:
@@ -176,11 +178,12 @@ class StatusForm(HandlerForm):
 
     def clean_name(self):
         "Find the most recent appointment for the patient."
+        timeline = self.cleaned_data.get('timeline', None)
         name = self.cleaned_data.get('name', '')
         # name should be a pin for an active timeline subscription
         timelines = TimelineSubscription.objects.filter(
             Q(Q(end__gte=now()) | Q(end__isnull=True)),
-            connection=self.connection, pin=name
+            timeline=timeline, connection=self.connection, pin=name
         ).values_list('timeline', flat=True)
         if not timelines:
             # PIN doesn't match an active subscription for this connection
@@ -229,11 +232,12 @@ class MoveForm(HandlerForm):
 
     def clean_name(self):
         "Find the next appointment for the patient."
+        timeline = self.cleaned_data.get('timeline', None)
         name = self.cleaned_data.get('name', '')
         # name should be a pin for an active timeline subscription
         timelines = TimelineSubscription.objects.filter(
             Q(Q(end__gte=now()) | Q(end__isnull=True)),
-            connection=self.connection, pin=name
+            timeline=timeline, connection=self.connection, pin=name
         ).values_list('timeline', flat=True)
         if not timelines:
             # PIN doesn't match an active subscription for this connection
