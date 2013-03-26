@@ -72,14 +72,13 @@ class Appointment(models.Model):
     notes = models.CharField(max_length=160, blank=True, default='')
 
     def __unicode__(self):
-        return 'Appointment for %s on %s' % (self.connection, self.date.isoformat())
+        return 'Appointment for %s on %s' % (self.subscription.connection, self.date.isoformat())
 
     class Meta:
         ordering = ['-date']
         permissions = (
             ('view_appointment', 'Can View Appointments'),
         )
-        verbose_name = 'appointment view'
 
 
 class Notification(models.Model):

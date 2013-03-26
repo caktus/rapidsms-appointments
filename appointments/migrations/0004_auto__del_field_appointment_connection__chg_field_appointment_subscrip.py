@@ -11,19 +11,17 @@ class Migration(SchemaMigration):
         # Deleting field 'Appointment.connection'
         db.delete_column(u'appointments_appointment', 'connection_id')
 
-        # Adding field 'Appointment.subscription'
-        db.add_column(u'appointments_appointment', 'subscription',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, related_name=u'appointments', to=orm['appointments.TimelineSubscription']),
-                      keep_default=False)
 
+        # Changing field 'Appointment.subscription'
+        db.alter_column(u'appointments_appointment', 'subscription_id', self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['appointments.TimelineSubscription']))
 
     def backwards(self, orm):
 
         # User chose to not deal with backwards NULL issues for 'Appointment.connection'
         raise RuntimeError("Cannot reverse this migration. 'Appointment.connection' and its values cannot be restored.")
-        # Deleting field 'Appointment.subscription'
-        db.delete_column(u'appointments_appointment', 'subscription_id')
 
+        # Changing field 'Appointment.subscription'
+        db.alter_column(u'appointments_appointment', 'subscription_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['appointments.TimelineSubscription']))
 
     models = {
         u'appointments.appointment': {
