@@ -20,7 +20,7 @@ class AppointmentMixin(object):
 
     @method_decorator(permission_required('appointments.view_appointment'))
     def dispatch(self, request, *args, **kwargs):
-        self.form = AppointmentFilterForm(self.request.GET)
+        self.form = AppointmentFilterForm(request.GET)
         if self.form.is_valid():
             self.appointments = self.form.get_appointments(ordering=self.ordering)
         else:
