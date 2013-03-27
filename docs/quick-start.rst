@@ -12,7 +12,7 @@ rapidsms-appointments requires Python 2.6 or 2.7. Python 3 is not currently supp
 planned in the future as Django and RapidSMS support for Python 3 increases. It also requires
 the following packages:
 
-* `Django <https://www.djangoproject.com/>`_ >= 1.3
+* `Django <https://www.djangoproject.com/>`_ >= 1.4
 * `RapidSMS <http://www.rapidsms.org/>`_ >= 0.11
 * `Celery <http://www.celeryproject.org/>`_ >= 3.0
 
