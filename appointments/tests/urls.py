@@ -2,7 +2,11 @@
 
 from __future__ import unicode_literals
 
-from django.conf.urls import include, patterns, url
+# for Django 1.3 support
+try:
+    from django.conf.urls import patterns, include
+except ImportError:
+    from django.conf.urls.defaults import patterns, include
 
 
 urlpatterns = patterns('',
