@@ -4,11 +4,6 @@
 {% load forms_tags %}
 {% load django_tables2 %}
 
-{% block stylesheets %}
-{{ block.super }}
-    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}appointments/stylesheets/appointments.css" />
-{% endblock %}
-
 {% block content %}
     <div class="span12" id="appointments">
         <div class="page-header"><h1>Appointment List</h1></div>
