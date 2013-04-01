@@ -269,7 +269,7 @@ class MoveForm(HandlerForm):
         params['date'] = self.cleaned_data['date']
         params.pop('id')
         params['milestone'] = appointment.milestone
-        params['connection'] = appointment.connection
+        params['subscription'] = appointment.subscription
         reschedule = Appointment.objects.create(**params)
         appointment.reschedule = reschedule
         appointment.save()
@@ -339,3 +339,19 @@ class QuitForm(HandlerForm):
             'name': name,
             'timeline': subscription.timeline.name,
         }
+
+
+class AppointmentFilterForm(forms.Form):
+    subscription__timeline = forms.ModelChoiceField(queryset=Timeline.objects.all(),
+                                                    empty_label=_("All"),
+                                                    label=_("Timeline"),
+                                                    required=False)
+    status = forms.ChoiceField(choices=[('', 'All')] + Appointment.STATUS_CHOICES,
+                               required=False)
+
+    def get_appointments(self, ordering=None):
+        if self.is_valid():
+            filters = dict([(k, v) for k, v in self.cleaned_data.iteritems() if v])
+            if ordering is not None:
+                return Appointment.objects.filter(**filters).order_by(*ordering)
+            return Appointment.objects.filter(**filters)

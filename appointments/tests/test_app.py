@@ -23,7 +23,7 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         self.assertTrue(reply.text.startswith('Thank you'))
         # Single appointment should be created
         generate_appointments()
-        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        appointment = Appointment.objects.get(subscription__connection=self.connection, milestone=self.milestone)
         tomorrow = datetime.date.today() + datetime.timedelta(days=self.milestone.offset)
         self.assertEqual(tomorrow, appointment.date)
 
@@ -37,7 +37,7 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         msg = self.receive('APPT CONFIRM FOO {0}'.format(subscription.pin), self.connection)
         reply = self.outbound.pop()
         self.assertTrue(reply.text.startswith('Thank you'))
-        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        appointment = Appointment.objects.get(subscription__connection=self.connection, milestone=self.milestone)
         self.assertTrue(appointment.confirmed)
 
     def test_made_appointment(self):
@@ -53,7 +53,7 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         msg = self.receive('APPT STATUS FOO {0} SAW'.format(subscription.pin), self.connection)
         reply = self.outbound.pop()
         self.assertTrue(reply.text.startswith('Thank you'))
-        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        appointment = Appointment.objects.get(subscription__connection=self.connection, milestone=self.milestone)
         self.assertEqual(Appointment.STATUS_SAW, appointment.status)
 
     def test_missed_appointment(self):
@@ -69,7 +69,7 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         msg = self.receive('APPT STATUS FOO {0} MISSED'.format(subscription.pin), self.connection)
         reply = self.outbound.pop()
         self.assertTrue(reply.text.startswith('Thank you'))
-        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        appointment = Appointment.objects.get(subscription__connection=self.connection, milestone=self.milestone)
         self.assertEqual(Appointment.STATUS_MISSED, appointment.status)
 
     def test_join_then_quit(self):
@@ -82,7 +82,7 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         self.assertTrue(reply.text.startswith('Thank you'))
         generate_appointments()
         # No appointments should be generated
-        appointments = Appointment.objects.filter(connection=self.connection)
+        appointments = Appointment.objects.filter(subscription__connection=self.connection)
         self.assertEqual(0, appointments.count())
 
     def test_quit_reminders(self):
@@ -96,6 +96,6 @@ class AppointmentAppTestCase(AppointmentDataTestCase):
         self.assertTrue(reply.text.startswith('Thank you'))
         send_appointment_notifications()
         self.assertEqual(0, len(self.outbound), self.outbound)
-        appointment = Appointment.objects.get(connection=self.connection, milestone=self.milestone)
+        appointment = Appointment.objects.get(subscription__connection=self.connection, milestone=self.milestone)
         notifications = Notification.objects.filter(appointment=appointment)
         self.assertEqual(0, notifications.count())

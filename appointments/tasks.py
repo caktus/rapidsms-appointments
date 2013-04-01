@@ -35,7 +35,7 @@ def generate_appointments(days=14):
             #Create appointment(s) for this subscription within the task window
             if start <= milestone_date <= end:
                 appt, created = Appointment.objects.get_or_create(
-                                                    connection=sub.connection,
+                                                    subscription=sub,
                                                     milestone=milestone,
                                                     date=milestone_date
                                                     )
@@ -54,14 +54,14 @@ def send_appointment_notifications(days=7):
     blacklist = [Notification.STATUS_SENT, Notification.STATUS_CONFIRMED, Notification.STATUS_MANUAL]
     appts = Appointment.objects.filter(
         # Join subscriptions that haven't ended
-        Q(Q(connection__timelines__end__gte=now()) | Q(connection__timelines__end__isnull=True)),
-        connection__timelines__timeline=F('milestone__timeline'),
+        Q(Q(subscription__connection__timelines__end__gte=now()) | Q(subscription__connection__timelines__end__isnull=True)),
+        subscription__connection__timelines__timeline=F('milestone__timeline'),
         # Filter appointments in range
         date__range=(start, end),
     ).exclude(notifications__status__in=blacklist)
     for appt in appts:
         msg = APPT_REMINDER % {'date': appt.date}
-        send(msg, appt.connection)
+        send(msg, appt.subscription.connection)
         Notification.objects.create(appointment=appt,
                                     status=Notification.STATUS_SENT,
                                     sent=now(),
