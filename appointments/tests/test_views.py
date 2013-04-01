@@ -1,5 +1,8 @@
 from __future__ import unicode_literals
 from urllib import urlencode
+from cStringIO import StringIO
+
+from appointments.unicsv import UnicodeCSVReader
 
 from django.contrib.auth.models import Permission
 from django.core.urlresolvers import reverse
@@ -149,8 +152,8 @@ class AppointmentExportViewTestCase(AppointmentViewTestCase):
     perm_names = [('appointments', 'view_appointment')]
 
     def _extract(self, response):
-        content = response.content.strip()
-        return [line.split(',') for line in content.split('\r\n')]
+        reader = UnicodeCSVReader(StringIO(response.content))
+        return [line for line in reader]
 
     def _check_appointment(self, response, *appts):
         self.assertEquals(response.status_code, 200)
