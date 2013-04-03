@@ -9,6 +9,8 @@ from django.utils.decorators import method_decorator
 from django.views.generic import View
 from django.views.generic.base import TemplateView
 
+from django_tables2 import RequestConfig
+
 from .forms import AppointmentFilterForm
 from .models import Appointment
 from .tables import ApptTable
@@ -16,13 +18,11 @@ from .tables import ApptTable
 
 class AppointmentMixin(object):
     """Allow filtering by"""
-    ordering = ['-date']
-
     @method_decorator(permission_required('appointments.view_appointment'))
     def dispatch(self, request, *args, **kwargs):
         self.form = AppointmentFilterForm(request.GET)
         if self.form.is_valid():
-            self.appointments = self.form.get_appointments(ordering=self.ordering)
+            self.appointments = self.form.get_appointments()
         else:
             self.appointments = Appointment.objects.none()
         return super(AppointmentMixin, self).dispatch(request, *args, **kwargs)
@@ -34,14 +34,10 @@ class AppointmentList(AppointmentMixin, TemplateView):
     table_template_name = 'django_tables2/bootstrap-tables.html'
     appts_per_page = 10
 
-    @property
-    def page(self):
-        return self.request.GET.get('page', 1)
-
     def get_context_data(self, *args, **kwargs):
         appts_table = ApptTable(self.appointments,
                                 template=self.table_template_name)
-        appts_table.paginate(page=self.page, per_page=self.appts_per_page)
+        RequestConfig(self.request, paginate={"per_page": self.appts_per_page}).configure(appts_table)
         return {
             'form': self.form,
             'appts_table': appts_table
