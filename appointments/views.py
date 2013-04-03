@@ -34,15 +34,10 @@ class AppointmentList(AppointmentMixin, TemplateView):
     table_template_name = 'django_tables2/bootstrap-tables.html'
     appts_per_page = 10
 
-    @property
-    def page(self):
-        return self.request.GET.get('page', 1)
-
     def get_context_data(self, *args, **kwargs):
         appts_table = ApptTable(self.appointments,
                                 template=self.table_template_name)
-        appts_table.paginate(page=self.page, per_page=self.appts_per_page)
-        RequestConfig(self.request).configure(appts_table)
+        RequestConfig(self.request, paginate={"per_page": self.appts_per_page}).configure(appts_table)
         return {
             'form': self.form,
             'appts_table': appts_table
