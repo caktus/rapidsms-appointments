@@ -9,6 +9,7 @@ class ApptTable(tables.Table):
                                order_by="subscription.connection")
     subscription = tables.Column(accessor=tables.utils.A('subscription.pin'),
                                  order_by="subscription.pin")
+    milestone = tables.Column(orderable=False)
 
     class Meta:
         model = Appointment

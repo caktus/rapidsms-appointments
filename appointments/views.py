@@ -16,13 +16,13 @@ from .tables import ApptTable
 
 class AppointmentMixin(object):
     """Allow filtering by"""
-    ordering = ['-date']
+    ordering = '-date'
 
     @method_decorator(permission_required('appointments.view_appointment'))
     def dispatch(self, request, *args, **kwargs):
         self.form = AppointmentFilterForm(request.GET)
         if self.form.is_valid():
-            self.appointments = self.form.get_appointments(ordering=self.ordering)
+            self.appointments = self.form.get_appointments()
         else:
             self.appointments = Appointment.objects.none()
         return super(AppointmentMixin, self).dispatch(request, *args, **kwargs)
@@ -40,7 +40,8 @@ class AppointmentList(AppointmentMixin, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         appts_table = ApptTable(self.appointments,
-                                template=self.table_template_name)
+                                template=self.table_template_name,
+                                order_by=self.request.GET.get('sort', self.ordering))
         appts_table.paginate(page=self.page, per_page=self.appts_per_page)
         return {
             'form': self.form,
