@@ -349,7 +349,8 @@ class AppointmentFilterForm(forms.Form):
     status = forms.ChoiceField(choices=[('', 'All')] + Appointment.STATUS_CHOICES,
                                required=False)
 
-    def get_appointments(self):
+    def get_items(self):
         if self.is_valid():
             filters = dict([(k, v) for k, v in self.cleaned_data.iteritems() if v])
             return Appointment.objects.filter(**filters)
+        return Appointment.objects.none()

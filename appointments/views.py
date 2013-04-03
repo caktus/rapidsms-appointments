@@ -12,7 +12,6 @@ from django.views.generic.base import TemplateView
 from django_tables2 import RequestConfig
 
 from .forms import AppointmentFilterForm
-from .models import Appointment
 from .tables import ApptTable
 
 
@@ -21,10 +20,7 @@ class AppointmentMixin(object):
     @method_decorator(permission_required('appointments.view_appointment'))
     def dispatch(self, request, *args, **kwargs):
         self.form = AppointmentFilterForm(request.GET)
-        if self.form.is_valid():
-            self.appointments = self.form.get_appointments()
-        else:
-            self.appointments = Appointment.objects.none()
+        self.items = self.form.get_items()
         return super(AppointmentMixin, self).dispatch(request, *args, **kwargs)
 
 
@@ -32,15 +28,18 @@ class AppointmentList(AppointmentMixin, TemplateView):
     """Displays a paginated lits of appointments."""
     template_name = 'appointments/appointment_list.html'
     table_template_name = 'django_tables2/bootstrap-tables.html'
-    appts_per_page = 10
+    items_per_page = 10
+
+    def get_table(self):
+        table = ApptTable(self.items, template=self.table_template_name)
+        paginate = {'per_page': self.items_per_page}
+        RequestConfig(self.request, paginate=paginate).configure(table)
+        return table
 
     def get_context_data(self, *args, **kwargs):
-        appts_table = ApptTable(self.appointments,
-                                template=self.table_template_name)
-        RequestConfig(self.request, paginate={"per_page": self.appts_per_page}).configure(appts_table)
         return {
             'form': self.form,
-            'appts_table': appts_table
+            'table': self.get_table()
         }
 
 
@@ -49,12 +48,18 @@ class CSVAppointmentList(AppointmentMixin, View):
     # Fields to include in the csv, in order.
     filename = 'appointments'
 
+    def get_table(self):
+        table = ApptTable(self.items)
+        RequestConfig(self.request).configure(table)
+        return table
+
     def get(self, request, *args, **kwargs):
         if not self.form.is_valid():
             url = reverse('appointment_list')
             if request.GET:
                 url = '{0}?{1}'.format(url, request.GET.urlencode())
             return HttpResponseRedirect(url)
+
         response = HttpResponse(content_type='text/csv')
         content_disposition = 'attachment; filename=%s.csv' % self.filename
         response['Content-Disposition'] = content_disposition
@@ -63,11 +68,11 @@ class CSVAppointmentList(AppointmentMixin, View):
         return response
 
     def get_data(self):
-        appts_table = ApptTable(self.appointments)
-        columns = [x.title() for x in appts_table.columns.names()]
+        table = self.get_table()
+        columns = [x.title() for x in table.columns.names()]
         rows = [columns, ]
-        for appointment in appts_table.rows:
-            cells = [x for x in appointment]
+        for item in table.rows:
+            cells = [x for x in item]
             row = []
             for cell in cells:
                 row.append(cell)

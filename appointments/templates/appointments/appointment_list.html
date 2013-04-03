@@ -16,10 +16,10 @@
                 </form>
             </div>
             <div class="span9">
-                {% if appts_table.data.queryset.exists %}
+                {% if table.data.queryset.exists %}
                     <p>
-                        Displaying appointments {{ appts_table.page.start_index }} -
-                        {{ appts_table.page.end_index }} of {{ appts_table.data.queryset.count }}.<br/>
+                        Displaying appointments {{ table.page.start_index }} -
+                        {{ table.page.end_index }} of {{ table.data.queryset.count }}.<br/>
                         {% url 'csv_appointment_list' as csv %}
                         {% if request.GET %}
                             <a href="{{ csv }}?{{ request.GET.urlencode }}">Export results as CSV</a>
@@ -27,7 +27,7 @@
                             <a href="{{ csv }}">Export results as CSV</a>
                         {% endif %}
                     </p>
-                    {% render_table appts_table %}
+                    {% render_table table %}
                 {% else %}
                     <p>No appointments match your query.</p>
                 {% endif %}

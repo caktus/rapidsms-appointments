@@ -7,7 +7,6 @@ from appointments.unicsv import UnicodeCSVReader
 from django.contrib.auth.models import Permission
 from django.core.urlresolvers import reverse
 
-from ..views import CSVAppointmentList, AppointmentList
 from ..models import Appointment
 from .base import AppointmentDataTestCase
 
@@ -66,7 +65,7 @@ class AppointmentListViewTestCase(AppointmentViewTestCase):
     def _extract(self, response):
         """Extract the information we're interested in from the context."""
         form = response.context['form']
-        queryset = response.context['appts_table'].data.queryset
+        queryset = response.context['table'].data.queryset
         return queryset, form
 
     def test_no_permission(self):
@@ -100,7 +99,7 @@ class AppointmentListViewTestCase(AppointmentViewTestCase):
         self.assertEquals(response.status_code, 200)
         queryset, form = self._extract(response)
         self.assertEquals(queryset.count(), 11)
-        page = response.context['appts_table'].page
+        page = response.context['table'].page
         self.assertEquals(page.object_list.data.count(), 1)
 
     def test_filter_subscription_timeline(self):
@@ -199,7 +198,7 @@ class AppointmentExportViewTestCase(AppointmentViewTestCase):
         response = self._get(get_kwargs={'status': 'bad'}, follow=True)
         correct_url = reverse('appointment_list') + '?status=bad'
         self.assertRedirects(response, correct_url)
-        queryset = response.context['appts_table'].data.queryset
+        queryset = response.context['table'].data.queryset
         form = response.context['form']
         self.assertEquals(queryset.count(), 0)
         self.assertTrue('status' in form.errors)
@@ -218,7 +217,7 @@ class AppointmentExportViewTestCase(AppointmentViewTestCase):
         response = self._get(get_kwargs={'status': 'bad'}, follow=True)
         correct_url = reverse('appointment_list') + '?status=bad'
         self.assertRedirects(response, correct_url)
-        queryset = response.context['appts_table'].data.queryset
+        queryset = response.context['table'].data.queryset
         form = response.context['form']
         self.assertEquals(queryset.count(), 0)
         self.assertTrue('status' in form.errors)
