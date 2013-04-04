@@ -1,15 +1,19 @@
 {% extends "layout.html" %}
 {% load url from future %}
+{% load forms_tags django_tables2 %}
 
-{% load forms_tags %}
-{% load django_tables2 %}
+{% block title %}Appointment List{% endblock title %}
+
+{% block extra_stylesheets %}
+    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}appointments/stylesheets/appointments.css" />
+{% endblock extra_stylesheets %}
 
 {% block content %}
     <div class="span12" id="appointments">
         <div class="page-header"><h1>Appointment List</h1></div>
         <div class="row-fluid">
             <div class="span3">
-                <form method="GET">
+                <form id="filter-form" method="GET">
                     {% render_form form %}
                     <input class="btn btn-primary" type="submit" value="Update Filters" />
                     <a class="btn" href="{% url 'appointment_list' %}">Clear Filters</a>
