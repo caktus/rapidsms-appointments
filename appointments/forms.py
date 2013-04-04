@@ -341,15 +341,26 @@ class QuitForm(HandlerForm):
         }
 
 
+def get_pins():
+    pins = sorted([(x, x) for x in TimelineSubscription.objects.all().values_list('pin', flat=True)])
+    return pins
+
+
 class AppointmentFilterForm(forms.Form):
-    PINS = sorted([(x, x) for x in TimelineSubscription.objects.all().values_list('pin', flat=True)])
     CONFIRMED = [('false', 'Yes'), ('true', 'No')]
+
+    def __init__(self, *args, **kwargs):
+        super(AppointmentFilterForm, self).__init__(*args, **kwargs)
+        pin_choices = [('', 'All')] + get_pins()
+        pin_field = self.fields['subscription__pin']
+        pin_field.choices = pin_choices
 
     subscription__timeline = forms.ModelChoiceField(queryset=Timeline.objects.all(),
                                                     empty_label=_("All"),
                                                     label=_("Timeline"),
                                                     required=False)
-    subscription__pin = forms.ChoiceField(choices=[('', 'All')] + PINS,
+
+    subscription__pin = forms.ChoiceField(choices=[('', 'All')],
                                           label=_("Pin"),
                                           required=False)
     status = forms.ChoiceField(choices=[('', 'All')] + Appointment.STATUS_CHOICES,
