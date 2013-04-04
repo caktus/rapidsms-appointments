@@ -342,15 +342,31 @@ class QuitForm(HandlerForm):
 
 
 class AppointmentFilterForm(forms.Form):
+    PINS = sorted([(x, x) for x in TimelineSubscription.objects.all().values_list('pin', flat=True)])
+    CONFIRMED = [('false', 'Yes'), ('true', 'No')]
+
     subscription__timeline = forms.ModelChoiceField(queryset=Timeline.objects.all(),
                                                     empty_label=_("All"),
                                                     label=_("Timeline"),
                                                     required=False)
+    subscription__pin = forms.ChoiceField(choices=[('', 'All')] + PINS,
+                                          label=_("Pin"),
+                                          required=False)
     status = forms.ChoiceField(choices=[('', 'All')] + Appointment.STATUS_CHOICES,
                                required=False)
 
+    confirmed__isnull = forms.ChoiceField(choices=[('', 'All')] + CONFIRMED,
+                                          label=_("Confirmed"),
+                                          required=False)
+
+    def clean_confirmed__isnull(self):
+        confirmed = self.cleaned_data.get('confirmed__isnull', None)
+        if confirmed:
+            confirmed = False if confirmed == 'false' else True
+        return confirmed
+
     def get_items(self):
         if self.is_valid():
-            filters = dict([(k, v) for k, v in self.cleaned_data.iteritems() if v])
+            filters = dict([(k, v) for k, v in self.cleaned_data.iteritems() if v or v is False])
             return Appointment.objects.filter(**filters)
         return Appointment.objects.none()
