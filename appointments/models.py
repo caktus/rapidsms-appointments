@@ -103,7 +103,8 @@ class Notification(models.Model):
     message = models.CharField(max_length=160)
 
     def __unicode__(self):
-        return 'Notification for %s on %s' % (self.appointment.connection, self.sent.isoformat())
+        return 'Notification for %s on %s' %\
+               (self.appointment.subscription.connection, self.sent.isoformat())
 
     def confirm(self, manual=False):
         "Mark appointment as confirmed."
