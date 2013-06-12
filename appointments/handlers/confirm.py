@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from .base import AppointmentHandler
 from ..forms import ConfirmForm
 
+__all__ = ['ConfirmHandler']
+
 
 class ConfirmHandler(AppointmentHandler):
     "Confirm an appointment notification."

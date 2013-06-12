@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from .base import AppointmentHandler
 from ..forms import NewForm
 
+__all__ = ['NewHandler']
+
 
 class NewHandler(AppointmentHandler):
     "Subscribes a user to a timeline."

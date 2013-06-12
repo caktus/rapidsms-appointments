@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from .base import AppointmentHandler
 from ..forms import StatusForm
 
+__all__ = ['StatusHandler']
+
 
 class StatusHandler(AppointmentHandler):
     "Set the status of an appointment for the patient."

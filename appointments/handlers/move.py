@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from .base import AppointmentHandler
 from ..forms import MoveForm
 
+__all__ = ['MoveHandler']
+
 
 class MoveHandler(AppointmentHandler):
     "Reschdule the next appointment for the patient."

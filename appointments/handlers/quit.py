@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from .base import AppointmentHandler
 from ..forms import QuitForm
 
+__all__ = ['QuitHandler']
+
 
 class QuitHandler(AppointmentHandler):
     "Unsubscribes a user to a timeline."
